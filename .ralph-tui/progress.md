@@ -194,3 +194,26 @@ after each iteration and it's included in prompts for context.
   - Google Fonts can be loaded via `<link>` in the component body for dynamic font switching (no `@next/next/no-page-custom-font` rule active in this project)
   - Inline `style` props work well for dynamic styling that changes frequently (colors, dimensions) vs Tailwind classes
 ---
+
+## 2026-03-04 - lyons-form-ie9.8
+- What was implemented:
+  - Publish/Unpublish toggle button in the builder header
+  - Published form accessible at `/f/[slug]` (public, no auth required)
+  - Unpublished/draft forms show a "Form Not Available" page at their public URL
+  - Share modal with direct link and copy-to-clipboard button
+  - Share modal with iframe embed code with customizable width/height
+  - Published form renders with all custom styles applied (already from ie9.7)
+  - Published form is responsive (already from ie9.6)
+  - Moved published form route from `/forms/[slug]` to `/f/[slug]`
+  - Added `status` field support to the PATCH API for form status toggling
+- Files changed:
+  - src/app/f/[slug]/page.tsx (new: public form route with draft handling)
+  - src/app/forms/[slug]/page.tsx (removed: old route)
+  - src/components/builder/form-builder.tsx (added publish button, share modal, ShareModal component)
+  - src/app/api/forms/[formId]/route.ts (added status to PATCH handler)
+  - src/app/(protected)/builder/[formId]/page.tsx (passes slug and status to FormBuilder)
+- **Learnings:**
+  - The PATCH API pattern of spreading optional fields `...(field !== undefined && { field })` makes it easy to add new updatable fields without changing the API structure
+  - Share modal using `window.location.origin` for building the full URL works well for generating share links
+  - Published form route at `/f/[slug]` is cleaner and shorter than `/forms/[slug]`
+---

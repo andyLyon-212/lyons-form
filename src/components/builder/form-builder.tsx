@@ -31,6 +31,8 @@ interface FormBuilderProps {
     id: string;
     title: string;
     description: string | null;
+    slug: string;
+    status: string;
     styles: FormStyles | null;
     fields: {
       id: string;
@@ -102,6 +104,11 @@ export function FormBuilder({ initialForm }: FormBuilderProps) {
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">(
     "saved"
   );
+  const [isPublished, setIsPublished] = useState(
+    initialForm.status === "published"
+  );
+  const [publishing, setPublishing] = useState(false);
+  const [showShareModal, setShowShareModal] = useState(false);
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -243,6 +250,31 @@ export function FormBuilder({ initialForm }: FormBuilderProps) {
     if (id) setRightTab("fields");
   };
 
+  const handleTogglePublish = async () => {
+    setPublishing(true);
+    const newStatus = isPublished ? "draft" : "published";
+    try {
+      const res = await fetch(`/api/forms/${initialForm.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ status: newStatus }),
+      });
+      if (res.ok) {
+        setIsPublished(!isPublished);
+        if (newStatus === "published") {
+          setShowShareModal(true);
+        }
+      }
+    } finally {
+      setPublishing(false);
+    }
+  };
+
+  const formUrl =
+    typeof window !== "undefined"
+      ? `${window.location.origin}/f/${initialForm.slug}`
+      : `/f/${initialForm.slug}`;
+
   const selectedField = fields.find((f) => f.id === selectedFieldId) ?? null;
 
   return (
@@ -294,6 +326,29 @@ export function FormBuilder({ initialForm }: FormBuilderProps) {
               {saveStatus === "saved" && "All changes saved"}
               {saveStatus === "unsaved" && "Unsaved changes"}
             </div>
+            {isPublished && (
+              <button
+                onClick={() => setShowShareModal(true)}
+                className="rounded-md border border-border px-3 py-1.5 text-xs font-medium transition-colors hover:bg-muted"
+              >
+                Share
+              </button>
+            )}
+            <button
+              onClick={handleTogglePublish}
+              disabled={publishing}
+              className={`rounded-md px-3 py-1.5 text-xs font-medium text-white transition-colors disabled:opacity-50 ${
+                isPublished
+                  ? "bg-amber-500 hover:bg-amber-600"
+                  : "bg-green-600 hover:bg-green-700"
+              }`}
+            >
+              {publishing
+                ? "..."
+                : isPublished
+                  ? "Unpublish"
+                  : "Publish"}
+            </button>
           </div>
         </header>
 
@@ -324,6 +379,13 @@ export function FormBuilder({ initialForm }: FormBuilderProps) {
         </div>
       </div>
 
+      {showShareModal && (
+        <ShareModal
+          formUrl={formUrl}
+          onClose={() => setShowShareModal(false)}
+        />
+      )}
+
       <DragOverlay>
         {activeId ? (
           <div className="rounded-md border border-primary bg-card px-4 py-2 text-sm shadow-lg">
@@ -336,5 +398,100 @@ export function FormBuilder({ initialForm }: FormBuilderProps) {
         ) : null}
       </DragOverlay>
     </DndContext>
+  );
+}
+
+function ShareModal({
+  formUrl,
+  onClose,
+}: {
+  formUrl: string;
+  onClose: () => void;
+}) {
+  const [copied, setCopied] = useState<"link" | "embed" | null>(null);
+  const [embedWidth, setEmbedWidth] = useState("100%");
+  const [embedHeight, setEmbedHeight] = useState("600");
+
+  const embedCode = `<iframe src="${formUrl}" width="${embedWidth}" height="${embedHeight}" frameborder="0" style="border: none;"></iframe>`;
+
+  const copyToClipboard = async (text: string, type: "link" | "embed") => {
+    await navigator.clipboard.writeText(text);
+    setCopied(type);
+    setTimeout(() => setCopied(null), 2000);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+      <div className="mx-4 w-full max-w-lg rounded-lg bg-card p-6 shadow-xl">
+        <div className="mb-4 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">Share Form</h2>
+          <button
+            onClick={onClose}
+            className="text-muted-foreground hover:text-foreground"
+          >
+            &times;
+          </button>
+        </div>
+
+        {/* Direct Link */}
+        <div className="mb-6">
+          <label className="mb-2 block text-sm font-medium">Direct Link</label>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              readOnly
+              value={formUrl}
+              className="flex-1 rounded-md border border-input bg-muted px-3 py-2 text-sm"
+            />
+            <button
+              onClick={() => copyToClipboard(formUrl, "link")}
+              className="shrink-0 rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              {copied === "link" ? "Copied!" : "Copy"}
+            </button>
+          </div>
+        </div>
+
+        {/* Embed Code */}
+        <div>
+          <label className="mb-2 block text-sm font-medium">Embed Code</label>
+          <div className="mb-3 flex gap-3">
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">
+                Width
+              </label>
+              <input
+                type="text"
+                value={embedWidth}
+                onChange={(e) => setEmbedWidth(e.target.value)}
+                className="w-24 rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs text-muted-foreground">
+                Height (px)
+              </label>
+              <input
+                type="text"
+                value={embedHeight}
+                onChange={(e) => setEmbedHeight(e.target.value)}
+                className="w-24 rounded-md border border-input bg-background px-2 py-1.5 text-sm"
+              />
+            </div>
+          </div>
+          <div className="relative">
+            <pre className="overflow-x-auto rounded-md border border-input bg-muted p-3 text-xs">
+              {embedCode}
+            </pre>
+            <button
+              onClick={() => copyToClipboard(embedCode, "embed")}
+              className="absolute right-2 top-2 rounded bg-primary px-3 py-1 text-xs font-medium text-primary-foreground transition-colors hover:bg-primary/90"
+            >
+              {copied === "embed" ? "Copied!" : "Copy"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }

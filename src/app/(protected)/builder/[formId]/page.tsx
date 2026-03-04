@@ -27,6 +27,8 @@ export default async function BuilderPage({
         id: form.id,
         title: form.title,
         description: form.description,
+        slug: form.slug,
+        status: form.status,
         styles: form.styles as FormStyles | null,
         fields: form.fields.map((f) => ({
           id: f.id,
