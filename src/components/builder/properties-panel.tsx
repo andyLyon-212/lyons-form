@@ -1,10 +1,11 @@
 "use client";
 
-import { X, Plus, Trash2, GripVertical } from "lucide-react";
-import type { FormFieldData, FieldType } from "@/lib/builder-types";
+import { X, Plus, Trash2, GripVertical, Eye } from "lucide-react";
+import type { FormFieldData, FieldType, ConditionalLogic, ConditionalOperator } from "@/lib/builder-types";
 
 interface PropertiesPanelProps {
   field: FormFieldData | null;
+  allFields: FormFieldData[];
   onUpdate: (id: string, updates: Partial<FormFieldData>) => void;
   onClose: () => void;
 }
@@ -29,7 +30,7 @@ const FIELD_TYPE_LABELS: Record<FieldType, string> = {
 const FIELDS_WITH_OPTIONS: FieldType[] = ["select", "checkbox", "radio"];
 const LAYOUT_FIELDS: FieldType[] = ["divider", "heading"];
 
-export function PropertiesPanel({ field, onUpdate, onClose }: PropertiesPanelProps) {
+export function PropertiesPanel({ field, allFields, onUpdate, onClose }: PropertiesPanelProps) {
   if (!field) {
     return (
       <div className="flex h-full w-72 flex-col border-l border-border bg-card">
@@ -213,6 +214,15 @@ export function PropertiesPanel({ field, onUpdate, onClose }: PropertiesPanelPro
 
           {/* Validation section */}
           <ValidationSection field={field} onUpdate={onUpdate} />
+
+          {/* Conditional Logic section */}
+          {!isLayout && (
+            <ConditionalLogicSection
+              field={field}
+              allFields={allFields}
+              onUpdate={onUpdate}
+            />
+          )}
         </div>
       </div>
     </div>
@@ -559,4 +569,135 @@ function ValidationSection({
     default:
       return null;
   }
+}
+
+const OPERATOR_LABELS: Record<ConditionalOperator, string> = {
+  equals: "Equals",
+  not_equals: "Not Equals",
+  contains: "Contains",
+};
+
+function ConditionalLogicSection({
+  field,
+  allFields,
+  onUpdate,
+}: {
+  field: FormFieldData;
+  allFields: FormFieldData[];
+  onUpdate: PropertiesPanelProps["onUpdate"];
+}) {
+  const otherFields = allFields.filter(
+    (f) => f.id !== field.id && f.type !== "divider" && f.type !== "heading"
+  );
+  const logic = field.conditionalLogic;
+  const enabled = !!logic;
+
+  const toggleEnabled = () => {
+    if (enabled) {
+      onUpdate(field.id, { conditionalLogic: undefined });
+    } else if (otherFields.length > 0) {
+      onUpdate(field.id, {
+        conditionalLogic: {
+          fieldId: otherFields[0].id,
+          operator: "equals",
+          value: "",
+        },
+      });
+    }
+  };
+
+  const updateLogic = (updates: Partial<ConditionalLogic>) => {
+    if (!logic) return;
+    onUpdate(field.id, {
+      conditionalLogic: { ...logic, ...updates },
+    });
+  };
+
+  return (
+    <div className="space-y-4 border-t border-border pt-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <Eye className="h-3.5 w-3.5 text-muted-foreground" />
+          <h3 className="text-xs font-semibold uppercase text-muted-foreground">
+            Conditional Logic
+          </h3>
+        </div>
+        <button
+          onClick={toggleEnabled}
+          disabled={otherFields.length === 0}
+          className={`relative h-6 w-11 rounded-full transition-colors ${
+            enabled ? "bg-primary" : "bg-input"
+          } ${otherFields.length === 0 ? "cursor-not-allowed opacity-50" : ""}`}
+        >
+          <span
+            className={`absolute left-0.5 top-0.5 h-5 w-5 rounded-full bg-white transition-transform ${
+              enabled ? "translate-x-5" : "translate-x-0"
+            }`}
+          />
+        </button>
+      </div>
+
+      {otherFields.length === 0 && (
+        <p className="text-xs text-muted-foreground">
+          Add more fields to use conditional logic
+        </p>
+      )}
+
+      {enabled && logic && (
+        <div className="space-y-3">
+          <p className="text-xs text-muted-foreground">
+            Show this field when:
+          </p>
+
+          {/* Field selector */}
+          <div>
+            <label className={labelClass}>Field</label>
+            <select
+              value={logic.fieldId}
+              onChange={(e) => updateLogic({ fieldId: e.target.value })}
+              className={inputClass}
+            >
+              {otherFields.map((f) => (
+                <option key={f.id} value={f.id}>
+                  {f.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Operator */}
+          <div>
+            <label className={labelClass}>Condition</label>
+            <select
+              value={logic.operator}
+              onChange={(e) =>
+                updateLogic({ operator: e.target.value as ConditionalOperator })
+              }
+              className={inputClass}
+            >
+              {(Object.keys(OPERATOR_LABELS) as ConditionalOperator[]).map(
+                (op) => (
+                  <option key={op} value={op}>
+                    {OPERATOR_LABELS[op]}
+                  </option>
+                )
+              )}
+            </select>
+          </div>
+
+          {/* Value */}
+          <div>
+            <label className={labelClass}>Value</label>
+            <input
+              type="text"
+              value={logic.value}
+              onChange={(e) => updateLogic({ value: e.target.value })}
+              placeholder="Enter value..."
+              className={inputClass}
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  );
 }

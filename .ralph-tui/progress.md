@@ -142,3 +142,28 @@ after each iteration and it's included in prompts for context.
   - Built-in format validations (email, phone, url) use "on by default" toggle pattern — checking `!== false` rather than `=== true` means they're enabled without any stored rule
   - Simple mouse-event-based drag reordering works for small lists (options) without needing a full drag library
 ---
+
+## 2026-03-04 - lyons-form-ie9.6
+- What was implemented:
+  - Conditional Logic section in the properties panel with toggle, field selector, operator (equals/not equals/contains), and value input
+  - `ConditionalLogic` type added to `FormFieldData` with `fieldId`, `operator`, `value`
+  - Eye icon indicator on canvas fields that have conditional logic configured
+  - `conditionalLogic` persisted through save/load via API route and form builder
+  - Published form page at `/forms/[slug]` with real-time conditional field visibility evaluation
+  - Form submission API at `/api/forms/[formId]/submit` (only accepts published forms)
+  - Published form only submits visible field values (hidden conditional fields excluded)
+- Files changed:
+  - src/lib/builder-types.ts (added ConditionalLogic type and conditionalLogic to FormFieldData)
+  - src/components/builder/properties-panel.tsx (added ConditionalLogicSection component, allFields prop)
+  - src/components/builder/canvas-field.tsx (added Eye indicator for conditional fields)
+  - src/components/builder/form-builder.tsx (added conditionalLogic to initialForm type and field mapping, passes allFields to PropertiesPanel)
+  - src/app/(protected)/builder/[formId]/page.tsx (added conditionalLogic to field mapping)
+  - src/app/api/forms/[formId]/route.ts (added conditionalLogic to PATCH field type and createMany data)
+  - src/app/forms/[slug]/page.tsx (new: published form server page)
+  - src/components/forms/published-form.tsx (new: published form client component with real-time condition evaluation)
+  - src/app/api/forms/[formId]/submit/route.ts (new: form submission API)
+- **Learnings:**
+  - The `conditionalLogic Json?` column was already in the Prisma schema from ie9.1, so no migration was needed
+  - For conditional logic evaluation, comparing against string values works well since form field values are all strings (even numbers/dates are stored as string input values)
+  - Filtering visible fields before submission ensures hidden conditional fields don't leak data
+---

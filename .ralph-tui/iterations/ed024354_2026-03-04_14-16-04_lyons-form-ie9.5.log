@@ -1,0 +1,101 @@
+# Iteration 5 Log
+
+## Metadata
+
+- **Task ID**: lyons-form-ie9.5
+- **Task Title**: US-005: Field properties and validation configuration
+- **Description**: As a user, I want to configure each field's properties (label, placeholder, required, validation) so that my form collects the right data.
+
+Acceptance Criteria:
+- Right panel shows properties when a f...
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-03-04T21:16:04.664Z
+- **Ended At**: 2026-03-04T21:18:55.833Z
+- **Duration**: 2m 51s
+- **Input Tokens**: 64
+- **Output Tokens**: 10862
+- **Total Tokens**: 10926
+- **Agent**: claude
+- **Model**: claude-opus-4-6
+- **Epic**: lyons-form-ie9
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+
+
+I'll start by studying the progress file and understanding the current codebase state.
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/.ralph-tui/progress.md[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/.claude/projects/-home-andresleon-Documents-lyons-form/memory/MEMORY.md[0m
+
+[91m[Error: File does not exist. Note: your current working directory is /home/andresleon/Documents/lyons-form.][0m
+Now let me study the existing code to understand what's already there and what needs to be added.
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/lib/builder-types.ts[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/properties-panel.tsx[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/canvas-field.tsx[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/form-builder.tsx[0m
+[94m[TodoWrite][0m
+Now I'll implement the validation sections in the properties panel. The `validationRules` field on `FormFieldData` already exists as `Record<string, unknown>`, so I can store all validation config there.
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/properties-panel.tsx[0m edit: ""use client";
+
+import { X, Plus, Trash2 } from "lu..." → ""use client";
+
+import { X, Plus, Trash2, GripVerti..."
+Now I'll add the validation-specific UI sections after the options section and before the closing tags. Let me replace the entire component with the enhanced version:
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/properties-panel.tsx[0m edit: "          {/* Options for select/checkbox/radio */..." → "          {/* Options for select/checkbox/radio */..."
+Now update the canvas field preview to reflect validation settings (rating max stars, file upload constraints):
+[94m[TodoWrite][0m
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/canvas-field.tsx[0m edit: "    case "number":
+      return (
+        <input
+ ..." → "    case "number": {
+      const minVal = field.va..."
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/canvas-field.tsx[0m edit: "    case "date":
+      return (
+        <input
+   ..." → "    case "date": {
+      const minDate = field.val..."
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/canvas-field.tsx[0m edit: "    case "file":
+      return (
+        <div class..." → "    case "file": {
+      const acceptedTypes = fie..."
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/canvas-field.tsx[0m edit: "    case "rating":
+      return (
+        <div cla..." → "    case "rating": {
+      const maxStars = (field..."
+Now let me also add text length constraint hints for text/textarea fields:
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/canvas-field.tsx[0m edit: "    case "text":
+    case "email":
+    case "phone..." → "    case "text":
+    case "email":
+    case "phone..."
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/canvas-field.tsx[0m edit: "    case "textarea":
+      return (
+        <texta..." → "    case "textarea": {
+      const taMinLen = fiel..."
+Now run the quality checks:
+[94m[TodoWrite][0m
+[94m[Bash][0m Run TypeScript type checking $ npm run typecheck 2>&1
+[94m[Bash][0m Run ESLint $ npm run lint 2>&1
+Both pass. Now close the bead and document learnings.
+[94m[TodoWrite][0m
+[94m[Bash][0m Close bead lyons-form-ie9.5 $ bd close lyons-form-ie9.5 --db /home/andresleon/Documents/lyons-form/.beads/beads.db --reason "Field...
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/.ralph-tui/progress.md[0m edit: "  - Server component can fetch initial data and pa..." → "  - Server component can fetch initial data and pa..."
+[94m[TodoWrite][0m
+All done. Here's a summary of what was implemented:
+
+**Properties panel** now shows type-specific validation when a field is selected:
+- **Text/Textarea**: min/max length, regex pattern + custom error message
+- **Number**: min/max value
+- **Email/Phone/URL**: built-in format validation toggles (enabled by default)
+- **File upload**: accepted file types, max file size (MB)
+- **Date**: min/max date pickers
+- **Rating**: configurable max stars (3-10)
+- **Select/Checkbox/Radio**: options now have drag handles for reordering
+
+**Canvas preview** reflects changes immediately — rating shows the correct number of stars, number/date fields show range hints, file upload shows accepted types and size limits, text fields show character count constraints.
+
+Both `npm run typecheck` and `npm run lint` pass cleanly.
+
+<promise>COMPLETE</promise>

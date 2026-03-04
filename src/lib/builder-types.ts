@@ -38,6 +38,14 @@ export const FIELD_DEFINITIONS: FieldDefinition[] = [
   { type: "heading", label: "Heading", icon: "Heading", category: "layout" },
 ];
 
+export type ConditionalOperator = "equals" | "not_equals" | "contains";
+
+export interface ConditionalLogic {
+  fieldId: string;
+  operator: ConditionalOperator;
+  value: string;
+}
+
 export interface FormFieldData {
   id: string;
   type: FieldType;
@@ -47,6 +55,7 @@ export interface FormFieldData {
   required: boolean;
   options?: string[];
   validationRules?: Record<string, unknown>;
+  conditionalLogic?: ConditionalLogic;
   order: number;
 }
 

@@ -16,6 +16,7 @@ import { FormCanvas } from "./form-canvas";
 import { PropertiesPanel } from "./properties-panel";
 import {
   FIELD_DEFINITIONS,
+  type ConditionalLogic,
   type FieldType,
   type FormFieldData,
 } from "@/lib/builder-types";
@@ -34,6 +35,7 @@ interface FormBuilderProps {
       required: boolean;
       options: string[] | null;
       validationRules: Record<string, unknown> | null;
+      conditionalLogic: ConditionalLogic | null;
       order: number;
     }[];
   };
@@ -68,6 +70,8 @@ export function FormBuilder({ initialForm }: FormBuilderProps) {
       options: (f.options as string[] | null) ?? undefined,
       validationRules:
         (f.validationRules as Record<string, unknown> | null) ?? undefined,
+      conditionalLogic:
+        (f.conditionalLogic as ConditionalLogic | null) ?? undefined,
       order: f.order,
     }))
   );
@@ -252,6 +256,7 @@ export function FormBuilder({ initialForm }: FormBuilderProps) {
           />
           <PropertiesPanel
             field={selectedField}
+            allFields={fields}
             onUpdate={handleUpdateField}
             onClose={() => setSelectedFieldId(null)}
           />

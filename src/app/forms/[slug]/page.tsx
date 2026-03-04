@@ -1,29 +1,26 @@
-import { notFound } from "next/navigation";
-import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
-import { FormBuilder } from "@/components/builder/form-builder";
-import type { ConditionalLogic } from "@/lib/builder-types";
+import { notFound } from "next/navigation";
+import { PublishedForm } from "@/components/forms/published-form";
 
-export default async function BuilderPage({
+export default async function PublishedFormPage({
   params,
 }: {
-  params: Promise<{ formId: string }>;
+  params: Promise<{ slug: string }>;
 }) {
-  const session = await auth();
-  if (!session?.user?.id) notFound();
-
-  const { formId } = await params;
+  const { slug } = await params;
 
   const form = await prisma.form.findFirst({
-    where: { id: formId, userId: session.user.id },
+    where: { slug, status: "published" },
     include: { fields: { orderBy: { order: "asc" } } },
   });
 
-  if (!form) notFound();
+  if (!form) {
+    notFound();
+  }
 
   return (
-    <FormBuilder
-      initialForm={{
+    <PublishedForm
+      form={{
         id: form.id,
         title: form.title,
         description: form.description,
@@ -36,8 +33,11 @@ export default async function BuilderPage({
           required: f.required,
           options: f.options as string[] | null,
           validationRules: f.validationRules as Record<string, unknown> | null,
-          conditionalLogic: f.conditionalLogic as ConditionalLogic | null,
-          order: f.order,
+          conditionalLogic: f.conditionalLogic as {
+            fieldId: string;
+            operator: string;
+            value: string;
+          } | null,
         })),
       }}
     />

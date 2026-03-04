@@ -73,6 +73,7 @@ export async function PATCH(
               required: boolean;
               options?: string[];
               validationRules?: Record<string, unknown>;
+              conditionalLogic?: { fieldId: string; operator: string; value: string };
               order: number;
             },
             index: number
@@ -86,6 +87,7 @@ export async function PATCH(
             required: field.required,
             options: field.options ?? null,
             validationRules: field.validationRules ?? null,
+            conditionalLogic: field.conditionalLogic ?? null,
             order: index,
           })
         ),

@@ -2,7 +2,7 @@
 
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Trash2 } from "lucide-react";
+import { GripVertical, Trash2, Eye } from "lucide-react";
 import type { FormFieldData } from "@/lib/builder-types";
 import { cn } from "@/lib/utils";
 
@@ -252,9 +252,14 @@ export function CanvasField({
 
       <div className="pl-4">
         {!isLayoutField && (
-          <label className="mb-1 block text-sm font-medium">
+          <label className="mb-1 flex items-center gap-1.5 text-sm font-medium">
             {field.label}
-            {field.required && <span className="ml-1 text-destructive">*</span>}
+            {field.required && <span className="text-destructive">*</span>}
+            {field.conditionalLogic && (
+              <span title="Has conditional logic">
+                <Eye className="h-3.5 w-3.5 text-primary/60" />
+              </span>
+            )}
           </label>
         )}
         {field.helpText && !isLayoutField && (

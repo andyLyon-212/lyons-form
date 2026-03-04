@@ -3,10 +3,10 @@
   "sessionId": "ed024354-5d7d-4329-a759-da7ab64cfa7c",
   "status": "running",
   "startedAt": "2026-03-04T20:46:29.102Z",
-  "updatedAt": "2026-03-04T21:18:55.896Z",
-  "currentIteration": 4,
+  "updatedAt": "2026-03-04T21:24:00.896Z",
+  "currentIteration": 5,
   "maxIterations": 1,
-  "tasksCompleted": 4,
+  "tasksCompleted": 5,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -77,8 +77,8 @@
       {
         "id": "lyons-form-ie9.5",
         "title": "US-005: Field properties and validation configuration",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "lyons-form-ie9.3",
@@ -128,6 +128,16 @@
       "durationMs": 190293,
       "startedAt": "2026-03-04T21:12:31.700Z",
       "endedAt": "2026-03-04T21:15:41.993Z"
+    },
+    {
+      "iteration": 5,
+      "status": "completed",
+      "taskId": "lyons-form-ie9.5",
+      "taskTitle": "US-005: Field properties and validation configuration",
+      "taskCompleted": true,
+      "durationMs": 171169,
+      "startedAt": "2026-03-04T21:16:04.664Z",
+      "endedAt": "2026-03-04T21:18:55.833Z"
     }
   ],
   "skippedTaskIds": [],
