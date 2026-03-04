@@ -1,5 +1,7 @@
 # Agent Instructions
 
+IMPORTANT: this is a living document, update this document with brief important learnings from any roadbloack or things that will make development easie in the future. Be brief. but ALWAYS update this document when you learn something new.
+
 This project uses **bd** (beads) for issue tracking. Run `bd onboard` to get started.
 
 ## Quick Reference
@@ -33,8 +35,8 @@ bd sync               # Sync with git
 7. **Hand off** - Provide context for next session
 
 **CRITICAL RULES:**
+
 - Work is NOT complete until `git push` succeeds
 - NEVER stop before pushing - that leaves work stranded locally
 - NEVER say "ready to push when you are" - YOU must push
 - If push fails, resolve and retry until it succeeds
-
