@@ -1,0 +1,14 @@
+{
+  "id": "ed024354-5d7d-4329-a759-da7ab64cfa7c",
+  "status": "running",
+  "startedAt": "2026-03-04T20:46:27.994Z",
+  "updatedAt": "2026-03-04T20:46:27.994Z",
+  "agentPlugin": "claude",
+  "trackerPlugin": "beads",
+  "epicId": "lyons-form-ie9",
+  "currentIteration": 0,
+  "maxIterations": 1,
+  "totalTasks": 0,
+  "tasksCompleted": 0,
+  "cwd": "/home/andresleon/Documents/lyons-form"
+}
