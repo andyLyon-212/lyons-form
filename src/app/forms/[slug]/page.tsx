@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma";
 import { notFound } from "next/navigation";
 import { PublishedForm } from "@/components/forms/published-form";
+import type { FormStyles } from "@/lib/builder-types";
 
 export default async function PublishedFormPage({
   params,
@@ -24,6 +25,7 @@ export default async function PublishedFormPage({
         id: form.id,
         title: form.title,
         description: form.description,
+        styles: (form.styles as FormStyles | null) ?? undefined,
         fields: form.fields.map((f) => ({
           id: f.id,
           type: f.type,

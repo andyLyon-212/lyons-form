@@ -167,3 +167,30 @@ after each iteration and it's included in prompts for context.
   - For conditional logic evaluation, comparing against string values works well since form field values are all strings (even numbers/dates are stored as string input values)
   - Filtering visible fields before submission ensures hidden conditional fields don't leak data
 ---
+
+## 2026-03-04 - lyons-form-ie9.7
+- What was implemented:
+  - Style tab in the builder header with toggle between Fields and Style panels
+  - StylePanel component with controls for: background (solid/gradient/image), primary color, font family (7 Google Fonts), font size (small/medium/large), button (color, border radius, text), container (border radius, shadow, padding, max width)
+  - Live preview in canvas: background, typography, container styles, and submit button preview all update in real-time
+  - FormStyles type and DEFAULT_FORM_STYLES constant in builder-types.ts
+  - Style utility functions in style-utils.ts (background, container, font size, Google Fonts URL)
+  - Styles persisted as JSON in Form.styles column via PATCH API
+  - Published form applies all saved styles with proper merging against defaults
+  - Published form uses primary color for radio/checkbox accent, rating stars, and focus states
+- Files changed:
+  - src/lib/builder-types.ts (added FormStyles, DEFAULT_FORM_STYLES, FONT_OPTIONS, GRADIENT_DIRECTIONS)
+  - src/lib/style-utils.ts (new: getBackgroundStyle, getContainerStyle, getFontSizeClass, getGoogleFontsUrl)
+  - src/components/builder/style-panel.tsx (new: StylePanel component)
+  - src/components/builder/form-builder.tsx (added styles state, tab toggle, StylePanel integration, styles in save)
+  - src/components/builder/form-canvas.tsx (added styles prop, live preview with background/font/container styles)
+  - src/app/api/forms/[formId]/route.ts (added styles to PATCH handler)
+  - src/app/(protected)/builder/[formId]/page.tsx (passes styles to FormBuilder)
+  - src/app/forms/[slug]/page.tsx (passes styles to PublishedForm)
+  - src/components/forms/published-form.tsx (applies all styles, uses primaryColor for accents)
+- **Learnings:**
+  - The `styles Json?` column was already in the Prisma schema from ie9.1, no migration needed
+  - `mergeStyles()` pattern with spread defaults ensures backwards compatibility when new style properties are added
+  - Google Fonts can be loaded via `<link>` in the component body for dynamic font switching (no `@next/next/no-page-custom-font` rule active in this project)
+  - Inline `style` props work well for dynamic styling that changes frequently (colors, dimensions) vs Tailwind classes
+---

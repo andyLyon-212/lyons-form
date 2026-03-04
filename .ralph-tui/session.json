@@ -3,10 +3,10 @@
   "sessionId": "ed024354-5d7d-4329-a759-da7ab64cfa7c",
   "status": "running",
   "startedAt": "2026-03-04T20:46:29.102Z",
-  "updatedAt": "2026-03-04T21:24:00.896Z",
-  "currentIteration": 5,
+  "updatedAt": "2026-03-04T21:29:48.041Z",
+  "currentIteration": 6,
   "maxIterations": 1,
-  "tasksCompleted": 5,
+  "tasksCompleted": 6,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -71,8 +71,8 @@
       {
         "id": "lyons-form-ie9.6",
         "title": "US-006: Simple conditional show/hide logic",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "lyons-form-ie9.5",
@@ -138,6 +138,16 @@
       "durationMs": 171169,
       "startedAt": "2026-03-04T21:16:04.664Z",
       "endedAt": "2026-03-04T21:18:55.833Z"
+    },
+    {
+      "iteration": 6,
+      "status": "completed",
+      "taskId": "lyons-form-ie9.6",
+      "taskTitle": "US-006: Simple conditional show/hide logic",
+      "taskCompleted": true,
+      "durationMs": 262208,
+      "startedAt": "2026-03-04T21:19:38.632Z",
+      "endedAt": "2026-03-04T21:24:00.840Z"
     }
   ],
   "skippedTaskIds": [],

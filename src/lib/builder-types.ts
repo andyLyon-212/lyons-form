@@ -59,6 +59,73 @@ export interface FormFieldData {
   order: number;
 }
 
+export interface FormStyles {
+  background: {
+    type: "solid" | "gradient" | "image";
+    color: string;
+    gradientFrom: string;
+    gradientTo: string;
+    gradientDirection: string;
+    imageUrl: string;
+  };
+  primaryColor: string;
+  fontFamily: string;
+  fontSize: "small" | "medium" | "large";
+  button: {
+    color: string;
+    borderRadius: number;
+    text: string;
+  };
+  container: {
+    borderRadius: number;
+    shadow: "none" | "sm" | "md" | "lg" | "xl";
+    padding: number;
+    maxWidth: number;
+  };
+}
+
+export const DEFAULT_FORM_STYLES: FormStyles = {
+  background: {
+    type: "gradient",
+    color: "#f8fafc",
+    gradientFrom: "#f8fafc",
+    gradientTo: "#eff6ff",
+    gradientDirection: "to bottom right",
+    imageUrl: "",
+  },
+  primaryColor: "#2563eb",
+  fontFamily: "Inter",
+  fontSize: "medium",
+  button: {
+    color: "#2563eb",
+    borderRadius: 8,
+    text: "Submit",
+  },
+  container: {
+    borderRadius: 12,
+    shadow: "lg",
+    padding: 32,
+    maxWidth: 512,
+  },
+};
+
+export const FONT_OPTIONS = [
+  { label: "Inter", value: "Inter" },
+  { label: "Roboto", value: "Roboto" },
+  { label: "Open Sans", value: "Open Sans" },
+  { label: "Lato", value: "Lato" },
+  { label: "Poppins", value: "Poppins" },
+  { label: "Playfair Display", value: "Playfair Display" },
+  { label: "Merriweather", value: "Merriweather" },
+] as const;
+
+export const GRADIENT_DIRECTIONS = [
+  { label: "↘ Bottom Right", value: "to bottom right" },
+  { label: "↓ Bottom", value: "to bottom" },
+  { label: "→ Right", value: "to right" },
+  { label: "↗ Top Right", value: "to top right" },
+] as const;
+
 export interface FormBuilderState {
   id: string;
   title: string;

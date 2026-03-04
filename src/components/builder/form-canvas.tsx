@@ -5,14 +5,16 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import type { FormFieldData } from "@/lib/builder-types";
+import type { FormFieldData, FormStyles } from "@/lib/builder-types";
 import { CanvasField } from "./canvas-field";
+import { getBackgroundStyle, getContainerStyle, getFontSizeClass, getGoogleFontsUrl } from "@/lib/style-utils";
 
 interface FormCanvasProps {
   title: string;
   description: string;
   fields: FormFieldData[];
   selectedFieldId: string | null;
+  styles: FormStyles;
   onTitleChange: (title: string) => void;
   onDescriptionChange: (description: string) => void;
   onSelectField: (id: string | null) => void;
@@ -24,26 +26,33 @@ export function FormCanvas({
   description,
   fields,
   selectedFieldId,
+  styles,
   onTitleChange,
   onDescriptionChange,
   onSelectField,
   onDeleteField,
 }: FormCanvasProps) {
   const { setNodeRef, isOver } = useDroppable({ id: "canvas" });
+  const fontSizeClass = getFontSizeClass(styles.fontSize);
 
   return (
     <div
-      className="flex flex-1 flex-col overflow-y-auto bg-muted/30 p-6"
+      className="flex flex-1 flex-col overflow-y-auto p-6"
+      style={{
+        ...getBackgroundStyle(styles.background),
+        fontFamily: `"${styles.fontFamily}", sans-serif`,
+      }}
       onClick={() => onSelectField(null)}
     >
-      <div className="mx-auto w-full max-w-2xl">
+      <link rel="stylesheet" href={getGoogleFontsUrl(styles.fontFamily)} />
+      <div className="mx-auto w-full" style={{ maxWidth: styles.container.maxWidth }}>
         {/* Form header */}
-        <div className="mb-6 rounded-lg border border-border bg-card p-6">
+        <div className="mb-6" style={getContainerStyle(styles)}>
           <input
             type="text"
             value={title}
             onChange={(e) => onTitleChange(e.target.value)}
-            className="w-full bg-transparent text-2xl font-bold outline-none placeholder:text-muted-foreground"
+            className={`w-full bg-transparent font-bold outline-none placeholder:text-muted-foreground ${fontSizeClass === "text-sm" ? "text-xl" : fontSizeClass === "text-lg" ? "text-3xl" : "text-2xl"}`}
             placeholder="Untitled Form"
             onClick={(e) => e.stopPropagation()}
           />
@@ -89,6 +98,23 @@ export function FormCanvas({
             </SortableContext>
           )}
         </div>
+
+        {/* Submit button preview */}
+        {fields.length > 0 && (
+          <div className="mt-4">
+            <button
+              type="button"
+              className="w-full font-medium text-white transition-opacity hover:opacity-90"
+              style={{
+                backgroundColor: styles.button.color,
+                borderRadius: styles.button.borderRadius,
+                padding: "12px 24px",
+              }}
+            >
+              {styles.button.text || "Submit"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { FormBuilder } from "@/components/builder/form-builder";
-import type { ConditionalLogic } from "@/lib/builder-types";
+import type { ConditionalLogic, FormStyles } from "@/lib/builder-types";
 
 export default async function BuilderPage({
   params,
@@ -27,6 +27,7 @@ export default async function BuilderPage({
         id: form.id,
         title: form.title,
         description: form.description,
+        styles: form.styles as FormStyles | null,
         fields: form.fields.map((f) => ({
           id: f.id,
           type: f.type,

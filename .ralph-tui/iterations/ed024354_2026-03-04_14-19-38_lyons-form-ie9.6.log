@@ -1,0 +1,185 @@
+# Iteration 6 Log
+
+## Metadata
+
+- **Task ID**: lyons-form-ie9.6
+- **Task Title**: US-006: Simple conditional show/hide logic
+- **Description**: As a user, I want to show or hide fields based on another field's value so that my forms are dynamic and relevant.
+
+Acceptance Criteria:
+- Each field's properties panel has a Conditional Logic section...
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-03-04T21:19:38.632Z
+- **Ended At**: 2026-03-04T21:24:00.840Z
+- **Duration**: 4m 22s
+- **Input Tokens**: 128
+- **Output Tokens**: 14901
+- **Total Tokens**: 15029
+- **Agent**: claude
+- **Model**: claude-opus-4-6
+- **Epic**: lyons-form-ie9
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/.ralph-tui/progress.md[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/.claude/projects/-home-andresleon-Documents-lyons-form/memory/MEMORY.md[0m
+
+[91m[Error: File does not exist. Note: your current working directory is /home/andresleon/Documents/lyons-form.][0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/lib/builder-types.ts[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/properties-panel.tsx[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/canvas-field.tsx[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/prisma/schema.prisma[0m
+[94m[TodoWrite][0m
+Let me check the form builder component and any existing published form page.
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/form-builder.tsx[0m
+[94m[Glob][0m pattern: [96msrc/app/**/form*/**/*.tsx[0m
+[94m[Glob][0m pattern: [96msrc/app/**/f/**/*.tsx[0m
+[94m[Glob][0m pattern: [96msrc/app/**/submit*/**/*.tsx[0m
+[94m[Glob][0m pattern: [96msrc/app/**/[slug]/**/*.tsx[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/app/api/forms/[formId]/route.ts[0m
+Now I have a clear picture. The `conditionalLogic` JSON column already exists in the schema. I need to:
+1. Add `conditionalLogic` to the `FormFieldData` type
+2. Add a Conditional Logic section to the properties panel
+3. Show an indicator on conditional fields in the canvas
+4. Wire up save/load for `conditionalLogic`
+5. No published form page exists yet — I'll create a basic one with real-time condition evaluation
+
+Let me start implementing.
+[94m[TodoWrite][0m
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/lib/builder-types.ts[0m edit: "export interface FormFieldData {
+  id: string;
+  t..." → "export type ConditionalOperator = "equals" | "not_..."
+[94m[TodoWrite][0m
+Now wire up `conditionalLogic` in the form builder (load) and API (save).
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/form-builder.tsx[0m edit: "import {
+  FIELD_DEFINITIONS,
+  type FieldType,
+  ..." → "import {
+  FIELD_DEFINITIONS,
+  type ConditionalLo..."
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/form-builder.tsx[0m edit: "      validationRules: Record<string, unknown> | n..." → "      validationRules: Record<string, unknown> | n..."
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/form-builder.tsx[0m edit: "      validationRules:
+        (f.validationRules ..." → "      validationRules:
+        (f.validationRules ..."
+Now update the `PropertiesPanel` to pass all fields so it can list them in the dropdown, and update the API to persist `conditionalLogic`.
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/form-builder.tsx[0m edit: "          <PropertiesPanel
+            field={sele..." → "          <PropertiesPanel
+            field={sele..."
+Now update the API route to include `conditionalLogic` in the save.
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/app/api/forms/[formId]/route.ts[0m edit: "              id: string;
+              type: stri..." → "              id: string;
+              type: stri..."
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/app/api/forms/[formId]/route.ts[0m edit: "            validationRules: field.validationRules..." → "            validationRules: field.validationRules..."
+[94m[TodoWrite][0m
+Now add the Conditional Logic section to the properties panel.
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/properties-panel.tsx[0m edit: "import { X, Plus, Trash2, GripVertical } from "luc..." → "import { X, Plus, Trash2, GripVertical, Eye } from..."
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/properties-panel.tsx[0m edit: "interface PropertiesPanelProps {
+  field: FormFiel..." → "interface PropertiesPanelProps {
+  field: FormFiel..."
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/properties-panel.tsx[0m edit: "export function PropertiesPanel({ field, onUpdate,..." → "export function PropertiesPanel({ field, allFields..."
+Now add the Conditional Logic section after the ValidationSection in the properties panel.
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/properties-panel.tsx[0m edit: "          {/* Validation section */}
+          <Va..." → "          {/* Validation section */}
+          <Va..."
+Now add the `ConditionalLogicSection` component at the end of the file.
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/properties-panel.tsx[0m
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/properties-panel.tsx[0m edit: "    default:
+      return null;
+  }
+}" → "    default:
+      return null;
+  }
+}
+
+const OPERA..."
+[94m[TodoWrite][0m
+Now add the conditional indicator icon on canvas fields.
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/canvas-field.tsx[0m edit: "import { GripVertical, Trash2 } from "lucide-react..." → "import { GripVertical, Trash2, Eye } from "lucide-..."
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/canvas-field.tsx[0m edit: "      <div className="pl-4">
+        {!isLayoutFie..." → "      <div className="pl-4">
+        {!isLayoutFie..."
+[94m[TodoWrite][0m
+Now I need to create the published form page that evaluates conditions in real-time. Let me check if there's any existing route structure for public form viewing.
+[94m[Glob][0m pattern: [96msrc/app/**/page.tsx[0m
+No published form page exists. I'll create a public form route at `/forms/[slug]` that evaluates conditional logic in real-time.
+[94m[Bash][0m List app directory structure $ ls /home/andresleon/Documents/lyons-form/src/app/
+[94m[Bash][0m Create forms/[slug] directory $ mkdir -p /home/andresleon/Documents/lyons-form/src/app/forms/\[slug\]
+[94m[Write][0m [95m/home/andresleon/Documents/lyons-form/src/app/forms/[slug]/page.tsx[0m "import { prisma } from "@/lib/prisma";
+import { notFound } from "next/navigation";
+import { PublishedForm } from "@/components/forms/published-form";
+
+export default async function PublishedFormPage({... (1146 chars)"
+Now create the `PublishedForm` client component with real-time conditional logic evaluation.
+[94m[Bash][0m Create forms components directory $ mkdir -p /home/andresleon/Documents/lyons-form/src/components/forms
+[94m[Write][0m [95m/home/andresleon/Documents/lyons-form/src/components/forms/published-form.tsx[0m ""use client";
+
+import { useState } from "react";
+
+interface PublishedField {
+  id: string;
+  type: string;
+  label: string;
+  placeholder: string | null;
+  helpText: string | null;
+  required: boolean... (9248 chars)"
+Now I need to create the submit API endpoint.
+[94m[Bash][0m Create submit API directory $ mkdir -p /home/andresleon/Documents/lyons-form/src/app/api/forms/\[formId\]/submit
+[94m[Write][0m [95m/home/andresleon/Documents/lyons-form/src/app/api/forms/[formId]/submit/route.ts[0m "import { NextRequest, NextResponse } from "next/server";
+import { prisma } from "@/lib/prisma";
+
+export async function POST(
+  request: NextRequest,
+  { params }: { params: Promise<{ formId: string }>... (804 chars)"
+I also need to make sure the middleware doesn't block the public `/forms/[slug]` route. Let me check the middleware.
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/middleware.ts[0m
+Good — the middleware only matches `/dashboard` and `/builder`, so `/forms/[slug]` and `/api/forms/[formId]/submit` are already public.
+[94m[TodoWrite][0m
+[94m[Bash][0m Run typecheck $ npm run typecheck 2>&1
+
+[91m[Error: Exit code 2
+
+> lyons-form@0.1.0 typecheck
+> tsc --noEmit
+
+src/app/(protected)/builder/[formId]/page.tsx(29,9): error TS2322: Type '{ id: string; type: string; label: string; placeholder: string | null; helpText: string | null; required: boolean; options: string[] | null; validationRules: Record<string, unknown> | null; order: number; }[]' is not assignable to type '{ id: string; type: string; label: string; placeholder: string | null; helpText: string | null; required: boolean; options: string[] | null; validationRules: Record<string, unknown> | null; conditionalLogic: ConditionalLogic | null; order: number; }[]'.
+  Property 'conditionalLogic' is missing in type '{ id: string; type: string; label: string; placeholder: string | null; helpText: string | null; required: boolean; options: string[] | null; validationRules: Record<string, unknown> | null; order: number; }' but required in type '{ id: string; type: string; label: string; placeholder: string | null; helpText: string | null; required: boolean; options: string[] | null; validationRules: Record<string, unknown> | null; conditionalLogic: ConditionalLogic | null; order: number; }'.
+
+
+> lyons-form@0.1.0 typecheck
+> tsc --noEmit
+
+src/app/(protected)/builder/[formId]/page.tsx(29,9): error TS2322: Type '{ id: string; type: string; label: string; placeholder: string | null; helpText: string | null; required: boolean; options: string[] | null; validationRules: Record<string, unknown> | null; order: number; }[]' is not assignable to type '{ id: string; type: string; label: string; placeholder: string | null; helpText: string | null; required: boolean; options: string[] | null; validationRules: Record<string, unknown> | null; conditionalLogic: ConditionalLogic | null; order: number; }[]'.
+  Property 'conditionalLogic' is missing in type '{ id: string; type: string; label: string; placeholder: string | null; helpText: string | null; required: boolean; options: string[] | null; validationRules: Record<string, unknown> | null; order: number; }' but required in type '{ id: string; type: string; label: string; placeholder: string | null; helpText: string | null; required: boolean; options: string[] | null; validationRules: Record<string, unknown> | null; conditionalLogic: ConditionalLogic | null; order: number; }'.][0m
+Need to update the builder page to include `conditionalLogic` in the field mapping.
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/app/(protected)/builder/[formId]/page.tsx[0m
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/app/(protected)/builder/[formId]/page.tsx[0m edit: "import { notFound } from "next/navigation";
+import..." → "import { notFound } from "next/navigation";
+import..."
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/src/app/(protected)/builder/[formId]/page.tsx[0m edit: "          validationRules: f.validationRules as Re..." → "          validationRules: f.validationRules as Re..."
+[94m[Bash][0m Run typecheck $ npm run typecheck 2>&1
+Typecheck passes. Now lint.
+[94m[Bash][0m Run lint $ npm run lint 2>&1
+Both typecheck and lint pass.
+[94m[TodoWrite][0m
+Now close the bead and update progress.
+[94m[Bash][0m Close the bead $ bd close lyons-form-ie9.6 --db /home/andresleon/Documents/lyons-form/.beads/beads.db --reason "Imple...
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/.ralph-tui/progress.md[0m edit: "  - Simple mouse-event-based drag reordering works..." → "  - Simple mouse-event-based drag reordering works..."
+<promise>COMPLETE</promise>
+
+**Summary of what was implemented for US-006:**
+
+1. **Type system**: Added `ConditionalLogic` interface (`fieldId`, `operator`, `value`) and `conditionalLogic?` property to `FormFieldData`
+
+2. **Properties panel**: New "Conditional Logic" section with toggle, field dropdown (lists all other fields), operator selector (equals/not equals/contains), and value input
+
+3. **Canvas indicator**: Eye icon appears next to field labels that have conditional logic configured
+
+4. **Save/load**: `conditionalLogic` flows through the form builder state, API PATCH route, and builder page server component
+
+5. **Published form** (`/forms/[slug]`): New page that renders published forms with real-time conditional field visibility — fields show/hide instantly as respondents fill in values
+
+6. **Submission API** (`/api/forms/[formId]/submit`): Only visible field values are included in submissions
+
+Both `npm run typecheck` and `npm run lint` pass cleanly.

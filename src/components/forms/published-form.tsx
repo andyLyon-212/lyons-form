@@ -1,6 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import {
+  DEFAULT_FORM_STYLES,
+  type FormStyles,
+} from "@/lib/builder-types";
+import {
+  getBackgroundStyle,
+  getContainerStyle,
+  getFontSizeClass,
+  getGoogleFontsUrl,
+} from "@/lib/style-utils";
 
 interface PublishedField {
   id: string;
@@ -23,7 +33,20 @@ interface PublishedFormProps {
     id: string;
     title: string;
     description: string | null;
+    styles?: FormStyles;
     fields: PublishedField[];
+  };
+}
+
+function mergeStyles(saved?: FormStyles): FormStyles {
+  if (!saved) return DEFAULT_FORM_STYLES;
+  return {
+    background: { ...DEFAULT_FORM_STYLES.background, ...saved.background },
+    primaryColor: saved.primaryColor ?? DEFAULT_FORM_STYLES.primaryColor,
+    fontFamily: saved.fontFamily ?? DEFAULT_FORM_STYLES.fontFamily,
+    fontSize: saved.fontSize ?? DEFAULT_FORM_STYLES.fontSize,
+    button: { ...DEFAULT_FORM_STYLES.button, ...saved.button },
+    container: { ...DEFAULT_FORM_STYLES.container, ...saved.container },
   };
 }
 
@@ -50,6 +73,9 @@ export function PublishedForm({ form }: PublishedFormProps) {
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
 
+  const styles = mergeStyles(form.styles);
+  const fontSizeClass = getFontSizeClass(styles.fontSize);
+
   const setValue = (fieldId: string, value: string) => {
     setValues((prev) => ({ ...prev, [fieldId]: value }));
   };
@@ -62,7 +88,6 @@ export function PublishedForm({ form }: PublishedFormProps) {
     e.preventDefault();
     setSubmitting(true);
 
-    // Only include visible field values in submission
     const visibleIds = new Set(visibleFields.map((f) => f.id));
     const submissionData: Record<string, string> = {};
     for (const [key, val] of Object.entries(values)) {
@@ -87,8 +112,21 @@ export function PublishedForm({ form }: PublishedFormProps) {
 
   if (submitted) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4">
-        <div className="w-full max-w-lg rounded-xl bg-white p-8 text-center shadow-lg">
+      <div
+        className="flex min-h-screen items-center justify-center p-4"
+        style={{
+          ...getBackgroundStyle(styles.background),
+          fontFamily: `"${styles.fontFamily}", sans-serif`,
+        }}
+      >
+                <link rel="stylesheet" href={getGoogleFontsUrl(styles.fontFamily)} />
+        <div
+          className="w-full text-center"
+          style={{
+            ...getContainerStyle(styles),
+            maxWidth: styles.container.maxWidth,
+          }}
+        >
           <h2 className="mb-2 text-2xl font-bold">Thank you!</h2>
           <p className="text-muted-foreground">
             Your response has been submitted successfully.
@@ -99,10 +137,19 @@ export function PublishedForm({ form }: PublishedFormProps) {
   }
 
   return (
-    <div className="flex min-h-screen justify-center bg-gradient-to-br from-slate-50 to-blue-50 p-4 py-12">
-      <div className="w-full max-w-lg">
-        <div className="mb-6 rounded-xl bg-white p-8 shadow-lg">
-          <h1 className="mb-2 text-2xl font-bold">{form.title}</h1>
+    <div
+      className={`flex min-h-screen justify-center p-4 py-12 ${fontSizeClass}`}
+      style={{
+        ...getBackgroundStyle(styles.background),
+        fontFamily: `"${styles.fontFamily}", sans-serif`,
+      }}
+    >
+      <link rel="stylesheet" href={getGoogleFontsUrl(styles.fontFamily)} />
+      <div className="w-full" style={{ maxWidth: styles.container.maxWidth }}>
+        <div className="mb-6" style={getContainerStyle(styles)}>
+          <h1 className={`mb-2 font-bold ${fontSizeClass === "text-sm" ? "text-xl" : fontSizeClass === "text-lg" ? "text-3xl" : "text-2xl"}`}>
+            {form.title}
+          </h1>
           {form.description && (
             <p className="text-muted-foreground">{form.description}</p>
           )}
@@ -110,14 +157,12 @@ export function PublishedForm({ form }: PublishedFormProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           {visibleFields.map((field) => (
-            <div
-              key={field.id}
-              className="rounded-xl bg-white p-6 shadow-sm"
-            >
+            <div key={field.id} style={getContainerStyle(styles)}>
               <FormField
                 field={field}
                 value={values[field.id] ?? ""}
                 onChange={(val) => setValue(field.id, val)}
+                primaryColor={styles.primaryColor}
               />
             </div>
           ))}
@@ -125,9 +170,14 @@ export function PublishedForm({ form }: PublishedFormProps) {
           <button
             type="submit"
             disabled={submitting}
-            className="w-full rounded-lg bg-primary px-6 py-3 font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
+            className="w-full font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+            style={{
+              backgroundColor: styles.button.color,
+              borderRadius: styles.button.borderRadius,
+              padding: "12px 24px",
+            }}
           >
-            {submitting ? "Submitting..." : "Submit"}
+            {submitting ? "Submitting..." : styles.button.text || "Submit"}
           </button>
         </form>
       </div>
@@ -139,13 +189,16 @@ function FormField({
   field,
   value,
   onChange,
+  primaryColor,
 }: {
   field: PublishedField;
   value: string;
   onChange: (value: string) => void;
+  primaryColor: string;
 }) {
   const inputClass =
-    "w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary";
+    "w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent";
+  const focusStyle = { "--tw-ring-color": `${primaryColor}33` } as React.CSSProperties;
 
   if (field.type === "divider") {
     return <hr className="border-border" />;
@@ -169,6 +222,8 @@ function FormField({
         value={value}
         onChange={onChange}
         inputClass={inputClass}
+        focusStyle={focusStyle}
+        primaryColor={primaryColor}
       />
     </div>
   );
@@ -179,11 +234,15 @@ function FieldInput({
   value,
   onChange,
   inputClass,
+  focusStyle,
+  primaryColor,
 }: {
   field: PublishedField;
   value: string;
   onChange: (value: string) => void;
   inputClass: string;
+  focusStyle: React.CSSProperties;
+  primaryColor: string;
 }) {
   switch (field.type) {
     case "text":
@@ -198,6 +257,7 @@ function FieldInput({
           placeholder={field.placeholder ?? ""}
           required={field.required}
           className={inputClass}
+          style={focusStyle}
         />
       );
     case "number":
@@ -211,6 +271,7 @@ function FieldInput({
           min={field.validationRules?.min as number | undefined}
           max={field.validationRules?.max as number | undefined}
           className={inputClass}
+          style={focusStyle}
         />
       );
     case "textarea":
@@ -222,6 +283,7 @@ function FieldInput({
           required={field.required}
           rows={4}
           className={inputClass}
+          style={focusStyle}
         />
       );
     case "date":
@@ -234,6 +296,7 @@ function FieldInput({
           min={field.validationRules?.minDate as string | undefined}
           max={field.validationRules?.maxDate as string | undefined}
           className={inputClass}
+          style={focusStyle}
         />
       );
     case "select":
@@ -243,6 +306,7 @@ function FieldInput({
           onChange={(e) => onChange(e.target.value)}
           required={field.required}
           className={inputClass}
+          style={focusStyle}
         >
           <option value="">{field.placeholder || "Select an option"}</option>
           {field.options?.map((opt) => (
@@ -263,6 +327,7 @@ function FieldInput({
                 value={opt}
                 checked={value === opt}
                 onChange={() => onChange(opt)}
+                style={{ accentColor: primaryColor }}
               />
               {opt}
             </label>
@@ -286,6 +351,7 @@ function FieldInput({
                       : [...selected, opt];
                     onChange(next.join(","));
                   }}
+                  style={{ accentColor: primaryColor }}
                 />
                 {opt}
               </label>
@@ -303,11 +369,10 @@ function FieldInput({
               key={star}
               type="button"
               onClick={() => onChange(String(star))}
-              className={`text-2xl transition-colors ${
-                star <= currentRating
-                  ? "text-yellow-400"
-                  : "text-muted-foreground/30"
-              }`}
+              className="text-2xl transition-colors"
+              style={{
+                color: star <= currentRating ? primaryColor : "rgba(0,0,0,0.15)",
+              }}
             >
               ★
             </button>
@@ -321,6 +386,7 @@ function FieldInput({
           type="file"
           onChange={(e) => onChange(e.target.files?.[0]?.name ?? "")}
           className={inputClass}
+          style={focusStyle}
         />
       );
     default:

@@ -14,18 +14,24 @@ import { arrayMove } from "@dnd-kit/sortable";
 import { FieldPalette } from "./field-palette";
 import { FormCanvas } from "./form-canvas";
 import { PropertiesPanel } from "./properties-panel";
+import { StylePanel } from "./style-panel";
 import {
+  DEFAULT_FORM_STYLES,
   FIELD_DEFINITIONS,
   type ConditionalLogic,
   type FieldType,
   type FormFieldData,
+  type FormStyles,
 } from "@/lib/builder-types";
+
+type RightPanelTab = "fields" | "style";
 
 interface FormBuilderProps {
   initialForm: {
     id: string;
     title: string;
     description: string | null;
+    styles: FormStyles | null;
     fields: {
       id: string;
       type: string;
@@ -54,6 +60,18 @@ function createField(type: FieldType, order: number): FormFieldData {
   };
 }
 
+function mergeStyles(saved: FormStyles | null): FormStyles {
+  if (!saved) return DEFAULT_FORM_STYLES;
+  return {
+    background: { ...DEFAULT_FORM_STYLES.background, ...saved.background },
+    primaryColor: saved.primaryColor ?? DEFAULT_FORM_STYLES.primaryColor,
+    fontFamily: saved.fontFamily ?? DEFAULT_FORM_STYLES.fontFamily,
+    fontSize: saved.fontSize ?? DEFAULT_FORM_STYLES.fontSize,
+    button: { ...DEFAULT_FORM_STYLES.button, ...saved.button },
+    container: { ...DEFAULT_FORM_STYLES.container, ...saved.container },
+  };
+}
+
 export function FormBuilder({ initialForm }: FormBuilderProps) {
   const [title, setTitle] = useState(initialForm.title);
   const [description, setDescription] = useState(
@@ -75,40 +93,41 @@ export function FormBuilder({ initialForm }: FormBuilderProps) {
       order: f.order,
     }))
   );
+  const [styles, setStyles] = useState<FormStyles>(
+    mergeStyles(initialForm.styles)
+  );
   const [selectedFieldId, setSelectedFieldId] = useState<string | null>(null);
   const [activeId, setActiveId] = useState<string | null>(null);
+  const [rightTab, setRightTab] = useState<RightPanelTab>("fields");
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "unsaved">(
     "saved"
   );
 
   const saveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  // Save current form state to server. Reads latest state via functional
-  // setState pattern to avoid stale closures and ref-during-render issues.
   function scheduleSave(
     overrides?: {
       title?: string;
       description?: string;
       fields?: FormFieldData[];
+      styles?: FormStyles;
     }
   ) {
     setSaveStatus("unsaved");
     if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
 
-    // Capture overrides immediately — if provided, these are the new values
-    // that setState hasn't flushed yet.
     const captured = { ...overrides };
 
     saveTimeoutRef.current = setTimeout(() => {
-      // Use a state reader trick: setFields returns the current state
-      // without actually changing it, so we can read it synchronously.
       let currentTitle = "";
       let currentDescription = "";
       let currentFields: FormFieldData[] = [];
+      let currentStyles: FormStyles = DEFAULT_FORM_STYLES;
 
       setTitle((t) => { currentTitle = captured.title ?? t; return t; });
       setDescription((d) => { currentDescription = captured.description ?? d; return d; });
       setFields((f) => { currentFields = captured.fields ?? f; return f; });
+      setStyles((s) => { currentStyles = captured.styles ?? s; return s; });
 
       setSaveStatus("saving");
       fetch(`/api/forms/${initialForm.id}`, {
@@ -118,6 +137,7 @@ export function FormBuilder({ initialForm }: FormBuilderProps) {
           title: currentTitle,
           description: currentDescription,
           fields: currentFields,
+          styles: currentStyles,
         }),
       })
         .then((res) => {
@@ -168,6 +188,7 @@ export function FormBuilder({ initialForm }: FormBuilderProps) {
         }
       }
       setSelectedFieldId(newField.id);
+      setRightTab("fields");
       return;
     }
 
@@ -212,6 +233,16 @@ export function FormBuilder({ initialForm }: FormBuilderProps) {
     scheduleSave({ description: newDesc });
   };
 
+  const handleStylesChange = (newStyles: FormStyles) => {
+    setStyles(newStyles);
+    scheduleSave({ styles: newStyles });
+  };
+
+  const handleFieldSelect = (id: string | null) => {
+    setSelectedFieldId(id);
+    if (id) setRightTab("fields");
+  };
+
   const selectedField = fields.find((f) => f.id === selectedFieldId) ?? null;
 
   return (
@@ -234,10 +265,35 @@ export function FormBuilder({ initialForm }: FormBuilderProps) {
               {title || "Untitled Form"}
             </span>
           </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            {saveStatus === "saving" && "Saving..."}
-            {saveStatus === "saved" && "All changes saved"}
-            {saveStatus === "unsaved" && "Unsaved changes"}
+          <div className="flex items-center gap-4">
+            {/* Right panel tabs */}
+            <div className="flex rounded-md border border-border bg-muted p-0.5">
+              <button
+                onClick={() => setRightTab("fields")}
+                className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
+                  rightTab === "fields"
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Fields
+              </button>
+              <button
+                onClick={() => setRightTab("style")}
+                className={`rounded px-3 py-1 text-xs font-medium transition-colors ${
+                  rightTab === "style"
+                    ? "bg-card text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                }`}
+              >
+                Style
+              </button>
+            </div>
+            <div className="text-xs text-muted-foreground">
+              {saveStatus === "saving" && "Saving..."}
+              {saveStatus === "saved" && "All changes saved"}
+              {saveStatus === "unsaved" && "Unsaved changes"}
+            </div>
           </div>
         </header>
 
@@ -249,17 +305,22 @@ export function FormBuilder({ initialForm }: FormBuilderProps) {
             description={description}
             fields={fields}
             selectedFieldId={selectedFieldId}
+            styles={styles}
             onTitleChange={handleTitleChange}
             onDescriptionChange={handleDescriptionChange}
-            onSelectField={setSelectedFieldId}
+            onSelectField={handleFieldSelect}
             onDeleteField={handleDeleteField}
           />
-          <PropertiesPanel
-            field={selectedField}
-            allFields={fields}
-            onUpdate={handleUpdateField}
-            onClose={() => setSelectedFieldId(null)}
-          />
+          {rightTab === "fields" ? (
+            <PropertiesPanel
+              field={selectedField}
+              allFields={fields}
+              onUpdate={handleUpdateField}
+              onClose={() => setSelectedFieldId(null)}
+            />
+          ) : (
+            <StylePanel styles={styles} onUpdate={handleStylesChange} />
+          )}
         </div>
       </div>
 

@@ -45,7 +45,7 @@ export async function PATCH(
     return NextResponse.json({ error: "Form not found" }, { status: 404 });
   }
 
-  const { title, description, fields } = body;
+  const { title, description, fields, styles } = body;
 
   // Update form metadata
   await prisma.form.update({
@@ -53,6 +53,7 @@ export async function PATCH(
     data: {
       ...(title !== undefined && { title }),
       ...(description !== undefined && { description }),
+      ...(styles !== undefined && { styles }),
     },
   });
 
