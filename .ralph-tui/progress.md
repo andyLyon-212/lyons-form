@@ -92,3 +92,30 @@ after each iteration and it's included in prompts for context.
   - For auto-save without effects: pass new values explicitly to the save function from event handlers (avoids stale closures), and use setTimeout inside save function to debounce.
   - NextAuth v5 credentials provider doesn't include `user.id` in the session by default; need explicit `jwt` and `session` callbacks to propagate it.
 ---
+
+## 2026-03-04 - lyons-form-ie9.3
+- What was implemented:
+  - Dashboard page at `/dashboard` showing all user forms as cards in a responsive grid
+  - Each card shows: form title, status badge (draft/published), submission count, created date
+  - Three-dot menu on each card with Duplicate and Delete actions
+  - Delete form with confirmation dialog warning about submission loss
+  - Duplicate form creates a copy with "(Copy)" suffix, all fields duplicated
+  - "Create New Form" button opens modal with two options: Start from scratch / Use a template
+  - Template selection view shows seeded templates (Contact Form, Event Registration) as selectable cards with field counts
+  - Creating from template copies all fields, styles, and metadata
+  - Sign out button in header
+  - Minimalist modern UI with soft gradient background (slate → blue), backdrop blur header, hover animations
+  - Server component fetches initial data; client component handles all interactions
+- Files changed:
+  - src/app/(protected)/dashboard/page.tsx (server component, fetches forms + templates)
+  - src/components/dashboard/dashboard-content.tsx (client component, full dashboard UI)
+  - src/app/api/forms/route.ts (added GET handler for listing user forms with submission counts)
+  - src/app/api/forms/[formId]/route.ts (added DELETE handler)
+  - src/app/api/forms/[formId]/duplicate/route.ts (POST, duplicates form with all fields)
+  - src/app/api/forms/from-template/route.ts (POST, creates form from template)
+  - src/app/api/templates/route.ts (GET, lists available templates)
+- **Learnings:**
+  - Prisma `_count` relation works well for submission/field counts without loading full relations
+  - `signOut` from `next-auth/react` (client import) vs `signOut` from `@/lib/auth` (server import) — use the client version in client components
+  - Server component can fetch initial data and pass to client component to avoid loading states on first render
+---

@@ -1,14 +1,28 @@
 import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/prisma";
+import { DashboardContent } from "@/components/dashboard/dashboard-content";
 
 export default async function DashboardPage() {
   const session = await auth();
 
+  const [forms, templates] = await Promise.all([
+    prisma.form.findMany({
+      where: { userId: session!.user!.id },
+      include: { _count: { select: { submissions: true } } },
+      orderBy: { updatedAt: "desc" },
+    }),
+    prisma.form.findMany({
+      where: { isTemplate: true },
+      include: { _count: { select: { fields: true } } },
+      orderBy: { title: "asc" },
+    }),
+  ]);
+
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center px-4">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
-      <p className="mt-2 text-muted-foreground">
-        Welcome, {session?.user?.name ?? "User"}
-      </p>
-    </div>
+    <DashboardContent
+      initialForms={forms}
+      templates={templates}
+      userName={session?.user?.name ?? "User"}
+    />
   );
 }

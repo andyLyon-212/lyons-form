@@ -100,3 +100,27 @@ export async function PATCH(
 
   return NextResponse.json(updatedForm);
 }
+
+export async function DELETE(
+  _request: NextRequest,
+  { params }: { params: Promise<{ formId: string }> }
+) {
+  const session = await auth();
+  if (!session?.user?.id) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  const { formId } = await params;
+
+  const form = await prisma.form.findFirst({
+    where: { id: formId, userId: session.user.id },
+  });
+
+  if (!form) {
+    return NextResponse.json({ error: "Form not found" }, { status: 404 });
+  }
+
+  await prisma.form.delete({ where: { id: formId } });
+
+  return NextResponse.json({ success: true });
+}
