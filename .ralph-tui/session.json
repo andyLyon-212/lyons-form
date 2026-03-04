@@ -3,10 +3,10 @@
   "sessionId": "ed024354-5d7d-4329-a759-da7ab64cfa7c",
   "status": "running",
   "startedAt": "2026-03-04T20:46:29.102Z",
-  "updatedAt": "2026-03-04T21:04:36.671Z",
-  "currentIteration": 1,
+  "updatedAt": "2026-03-04T21:11:55.677Z",
+  "currentIteration": 2,
   "maxIterations": 1,
-  "tasksCompleted": 1,
+  "tasksCompleted": 2,
   "isPaused": false,
   "agentPlugin": "claude",
   "trackerState": {
@@ -23,8 +23,8 @@
       {
         "id": "lyons-form-ie9.2",
         "title": "US-002: Email/password authentication",
-        "status": "open",
-        "completedInSession": false
+        "status": "completed",
+        "completedInSession": true
       },
       {
         "id": "lyons-form-ie9.1",
@@ -98,6 +98,16 @@
       "durationMs": 432899,
       "startedAt": "2026-03-04T20:53:51.874Z",
       "endedAt": "2026-03-04T21:01:04.773Z"
+    },
+    {
+      "iteration": 2,
+      "status": "completed",
+      "taskId": "lyons-form-ie9.2",
+      "taskTitle": "US-002: Email/password authentication",
+      "taskCompleted": true,
+      "durationMs": 158990,
+      "startedAt": "2026-03-04T21:01:57.616Z",
+      "endedAt": "2026-03-04T21:04:36.606Z"
     }
   ],
   "skippedTaskIds": [],

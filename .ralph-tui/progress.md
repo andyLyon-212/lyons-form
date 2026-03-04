@@ -9,7 +9,8 @@ after each iteration and it's included in prompts for context.
 - **Prisma v7 driver adapters**: PrismaClient requires an adapter arg: `new PrismaClient({ adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }) })`. Import `PrismaPg` from `@prisma/adapter-pg`.
 - **shadcn/ui manual setup**: `npx shadcn` fails on Node.js v25 (NixOS). Components must be installed manually or via `nix-shell` with older Node. The utility `cn()` is at `src/lib/utils.ts`.
 - **Quality gates**: `npm run typecheck` (tsc --noEmit) and `npm run lint` (eslint).
-- **NextAuth v5 (beta)**: Auth config at `src/lib/auth.ts` exports `{ handlers, signIn, signOut, auth }`. Route handler at `src/app/api/auth/[...nextauth]/route.ts`. Middleware uses `export { auth as middleware }` pattern. Use `bcryptjs` (pure JS, no native deps) for password hashing.
+- **NextAuth v5 (beta)**: Auth config at `src/lib/auth.ts` exports `{ handlers, signIn, signOut, auth }`. Route handler at `src/app/api/auth/[...nextauth]/route.ts`. Middleware uses `export { auth as middleware }` pattern. Use `bcryptjs` (pure JS, no native deps) for password hashing. JWT/session callbacks needed to propagate `user.id`.
+- **React 19 lint strictness**: Cannot update refs during render (`react-hooks/refs`). Cannot call setState inside useEffect (`react-hooks/set-state-in-effect`). For debounced auto-save: trigger from event handlers, pass new values explicitly to avoid stale closures.
 
 ---
 
@@ -58,4 +59,36 @@ after each iteration and it's included in prompts for context.
   - `bcryptjs` (pure JS) avoids native compilation issues on NixOS vs `bcrypt` (native)
   - NextAuth v5 `authorized` callback in config handles route protection; middleware just re-exports `auth`
   - Route groups `(auth)` and `(protected)` keep auth pages separate from protected pages without affecting URLs
+---
+
+## 2026-03-04 - lyons-form-ie9.4
+- What was implemented:
+  - Builder page at `/builder/[formId]` with three-panel layout (palette, canvas, properties)
+  - Field palette with 14 field types in 4 categories: basic (text, email, number, textarea, phone, url, date), choice (dropdown, checkboxes, radio), advanced (file upload, rating), layout (divider, heading)
+  - dnd-kit drag-and-drop: fields draggable from palette to canvas, sortable on canvas
+  - Canvas with real-time field preview for all field types
+  - Inline editable form title and description
+  - Properties panel for editing field label, placeholder, help text, required toggle, and options (for choice fields)
+  - Delete button on canvas fields
+  - Debounced auto-save (1s) to database via PATCH API
+  - API routes: GET/PATCH `/api/forms/[formId]`, POST `/api/forms`
+  - Added JWT/session callbacks to NextAuth config to include `user.id` in session
+- Files changed:
+  - src/lib/builder-types.ts (field type definitions and form builder state types)
+  - src/lib/auth.ts (added jwt/session callbacks for user.id)
+  - src/app/api/forms/route.ts (POST to create new form)
+  - src/app/api/forms/[formId]/route.ts (GET/PATCH for form CRUD)
+  - src/app/(protected)/builder/[formId]/page.tsx (server component, loads form)
+  - src/components/builder/form-builder.tsx (main client component, DndContext, auto-save)
+  - src/components/builder/field-palette.tsx (draggable field type palette)
+  - src/components/builder/form-canvas.tsx (droppable/sortable canvas)
+  - src/components/builder/canvas-field.tsx (individual field with preview + sortable)
+  - src/components/builder/properties-panel.tsx (field property editor)
+  - package.json (added @dnd-kit/core, @dnd-kit/sortable, @dnd-kit/utilities)
+- **Learnings:**
+  - React 19 + Next.js 16 ESLint rules are very strict: `react-hooks/refs` forbids updating refs during render (the classic `ref.current = value` pattern in function body). Must update refs in event handlers or effects only.
+  - `react-hooks/set-state-in-effect` forbids calling setState inside useEffect body (even transitively via a function called from the effect). Debounced auto-save must be triggered from event handlers, not effects watching state changes.
+  - dnd-kit v6 core + v10 sortable work well with React 19; standard API unchanged.
+  - For auto-save without effects: pass new values explicitly to the save function from event handlers (avoids stale closures), and use setTimeout inside save function to debounce.
+  - NextAuth v5 credentials provider doesn't include `user.id` in the session by default; need explicit `jwt` and `session` callbacks to propagate it.
 ---
