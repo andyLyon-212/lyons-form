@@ -119,3 +119,26 @@ after each iteration and it's included in prompts for context.
   - `signOut` from `next-auth/react` (client import) vs `signOut` from `@/lib/auth` (server import) — use the client version in client components
   - Server component can fetch initial data and pass to client component to avoid loading states on first render
 ---
+
+## 2026-03-04 - lyons-form-ie9.5
+- What was implemented:
+  - Type-specific validation sections in the properties panel for all field types
+  - Text/textarea: min/max length, custom regex pattern with error message
+  - Number: min/max value
+  - Email: built-in email format validation toggle (on by default)
+  - Phone: built-in phone format validation toggle (on by default)
+  - URL: built-in URL format validation toggle (on by default)
+  - File upload: accepted file types (comma-separated extensions), max file size in MB
+  - Date picker: min/max date with native date inputs
+  - Rating: configurable max stars (3-10, default 5)
+  - Option reordering for select/checkbox/radio via drag handles
+  - Canvas preview updates immediately: rating shows correct star count, number/date show range hints, file shows accepted types/size, text/textarea show character limits
+  - All validation stored in existing `validationRules` field on FormFieldData
+- Files changed:
+  - src/components/builder/properties-panel.tsx (added ValidationSection component, option reorder handles)
+  - src/components/builder/canvas-field.tsx (updated FieldPreview for number, date, file, rating, text, textarea to show validation hints)
+- **Learnings:**
+  - The `validationRules: Record<string, unknown>` pattern on FormFieldData is flexible enough to store all per-field-type validation without schema changes
+  - Built-in format validations (email, phone, url) use "on by default" toggle pattern — checking `!== false` rather than `=== true` means they're enabled without any stored rule
+  - Simple mouse-event-based drag reordering works for small lists (options) without needing a full drag library
+---

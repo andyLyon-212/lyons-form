@@ -18,41 +18,99 @@ function FieldPreview({ field }: { field: FormFieldData }) {
     case "text":
     case "email":
     case "phone":
-    case "url":
+    case "url": {
+      const tMinLen = field.validationRules?.minLength as number | undefined;
+      const tMaxLen = field.validationRules?.maxLength as number | undefined;
       return (
-        <input
-          type="text"
-          placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
-          disabled
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-        />
+        <div>
+          <input
+            type="text"
+            placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+            disabled
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          />
+          {field.type === "text" && (tMinLen !== undefined || tMaxLen !== undefined) && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {tMinLen !== undefined && tMaxLen !== undefined
+                ? `${tMinLen}-${tMaxLen} characters`
+                : tMinLen !== undefined
+                  ? `Min ${tMinLen} characters`
+                  : `Max ${tMaxLen} characters`}
+            </p>
+          )}
+        </div>
       );
-    case "number":
+    }
+    case "number": {
+      const minVal = field.validationRules?.min as number | undefined;
+      const maxVal = field.validationRules?.max as number | undefined;
       return (
-        <input
-          type="number"
-          placeholder={field.placeholder || "0"}
-          disabled
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-        />
+        <div>
+          <input
+            type="number"
+            placeholder={field.placeholder || "0"}
+            disabled
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          />
+          {(minVal !== undefined || maxVal !== undefined) && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {minVal !== undefined && maxVal !== undefined
+                ? `Between ${minVal} and ${maxVal}`
+                : minVal !== undefined
+                  ? `Min: ${minVal}`
+                  : `Max: ${maxVal}`}
+            </p>
+          )}
+        </div>
       );
-    case "textarea":
+    }
+    case "textarea": {
+      const taMinLen = field.validationRules?.minLength as number | undefined;
+      const taMaxLen = field.validationRules?.maxLength as number | undefined;
       return (
-        <textarea
-          placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
-          disabled
-          rows={3}
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-        />
+        <div>
+          <textarea
+            placeholder={field.placeholder || `Enter ${field.label.toLowerCase()}`}
+            disabled
+            rows={3}
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          />
+          {(taMinLen !== undefined || taMaxLen !== undefined) && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {taMinLen !== undefined && taMaxLen !== undefined
+                ? `${taMinLen}-${taMaxLen} characters`
+                : taMinLen !== undefined
+                  ? `Min ${taMinLen} characters`
+                  : `Max ${taMaxLen} characters`}
+            </p>
+          )}
+        </div>
       );
-    case "date":
+    }
+    case "date": {
+      const minDate = field.validationRules?.minDate as string | undefined;
+      const maxDate = field.validationRules?.maxDate as string | undefined;
       return (
-        <input
-          type="date"
-          disabled
-          className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-        />
+        <div>
+          <input
+            type="date"
+            min={minDate}
+            max={maxDate}
+            disabled
+            className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
+          />
+          {(minDate || maxDate) && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {minDate && maxDate
+                ? `${minDate} to ${maxDate}`
+                : minDate
+                  ? `From ${minDate}`
+                  : `Until ${maxDate}`}
+            </p>
+          )}
+        </div>
       );
+    }
     case "select":
       return (
         <select
@@ -91,22 +149,39 @@ function FieldPreview({ field }: { field: FormFieldData }) {
           )}
         </div>
       );
-    case "file":
+    case "file": {
+      const acceptedTypes = field.validationRules?.acceptedTypes as string | undefined;
+      const maxFileSize = field.validationRules?.maxFileSize as number | undefined;
       return (
-        <div className="flex w-full items-center justify-center rounded-md border-2 border-dashed border-input bg-background px-3 py-6 text-sm text-muted-foreground">
-          Click or drag to upload a file
+        <div>
+          <div className="flex w-full items-center justify-center rounded-md border-2 border-dashed border-input bg-background px-3 py-6 text-sm text-muted-foreground">
+            Click or drag to upload a file
+          </div>
+          {(acceptedTypes || maxFileSize) && (
+            <p className="mt-1 text-xs text-muted-foreground">
+              {[
+                acceptedTypes && `Accepts: ${acceptedTypes}`,
+                maxFileSize && `Max size: ${maxFileSize}MB`,
+              ]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+          )}
         </div>
       );
-    case "rating":
+    }
+    case "rating": {
+      const maxStars = (field.validationRules?.maxStars as number) ?? 5;
       return (
         <div className="flex gap-1">
-          {[1, 2, 3, 4, 5].map((star) => (
+          {Array.from({ length: maxStars }, (_, i) => i + 1).map((star) => (
             <span key={star} className="text-xl text-muted-foreground/40">
               ★
             </span>
           ))}
         </div>
       );
+    }
     case "divider":
       return <hr className="border-border" />;
     case "heading":
