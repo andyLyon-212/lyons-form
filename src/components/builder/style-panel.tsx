@@ -76,6 +76,34 @@ export function StylePanel({ styles, onUpdate }: StylePanelProps) {
       </div>
 
       <div className="flex-1 overflow-y-auto p-4 space-y-6">
+        {/* Effects */}
+        <div className={sectionClass}>
+          <h3 className={sectionTitleClass}>Effects</h3>
+          <label className="flex items-center justify-between gap-3 cursor-pointer">
+            <div>
+              <p className="text-sm font-medium">Liquid Glass</p>
+              <p className="text-xs text-muted-foreground">
+                Frosted glass effect on fields
+              </p>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={styles.liquidGlass}
+              onClick={() => update({ liquidGlass: !styles.liquidGlass })}
+              className={`relative inline-flex h-6 w-11 shrink-0 rounded-full border-2 border-transparent transition-colors ${
+                styles.liquidGlass ? "bg-primary" : "bg-muted"
+              }`}
+            >
+              <span
+                className={`pointer-events-none block h-5 w-5 rounded-full bg-white shadow-lg ring-0 transition-transform ${
+                  styles.liquidGlass ? "translate-x-5" : "translate-x-0"
+                }`}
+              />
+            </button>
+          </label>
+        </div>
+
         {/* Background */}
         <div className={sectionClass}>
           <h3 className={sectionTitleClass}>Background</h3>

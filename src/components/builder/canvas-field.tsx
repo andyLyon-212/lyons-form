@@ -226,7 +226,10 @@ export function CanvasField({
           : "border-border hover:border-primary/50",
         isDragging && "opacity-50"
       )}
-      onClick={onSelect}
+      onClick={(e) => {
+        e.stopPropagation();
+        onSelect();
+      }}
     >
       <div className="absolute -left-0 top-1/2 -translate-y-1/2 opacity-0 transition-opacity group-hover:opacity-100">
         <button

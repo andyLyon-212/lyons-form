@@ -71,6 +71,7 @@ function mergeStyles(saved: FormStyles | null): FormStyles {
     fontSize: saved.fontSize ?? DEFAULT_FORM_STYLES.fontSize,
     button: { ...DEFAULT_FORM_STYLES.button, ...saved.button },
     container: { ...DEFAULT_FORM_STYLES.container, ...saved.container },
+    liquidGlass: saved.liquidGlass ?? DEFAULT_FORM_STYLES.liquidGlass,
   };
 }
 

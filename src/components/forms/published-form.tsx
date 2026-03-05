@@ -9,6 +9,8 @@ import {
   getBackgroundStyle,
   getContainerStyle,
   getFontSizeClass,
+  getGlassButtonStyle,
+  getGlassInputStyle,
   getGoogleFontsUrl,
 } from "@/lib/style-utils";
 
@@ -47,6 +49,7 @@ function mergeStyles(saved?: FormStyles): FormStyles {
     fontSize: saved.fontSize ?? DEFAULT_FORM_STYLES.fontSize,
     button: { ...DEFAULT_FORM_STYLES.button, ...saved.button },
     container: { ...DEFAULT_FORM_STYLES.container, ...saved.container },
+    liquidGlass: saved.liquidGlass ?? DEFAULT_FORM_STYLES.liquidGlass,
   };
 }
 
@@ -72,6 +75,7 @@ export function PublishedForm({ form }: PublishedFormProps) {
   const [values, setValues] = useState<Record<string, string>>({});
   const [submitted, setSubmitted] = useState(false);
   const [submitting, setSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const styles = mergeStyles(form.styles);
   const fontSizeClass = getFontSizeClass(styles.fontSize);
@@ -103,7 +107,17 @@ export function PublishedForm({ form }: PublishedFormProps) {
         body: JSON.stringify({ data: submissionData }),
       });
       if (res.ok) {
+        setErrors({});
         setSubmitted(true);
+      } else {
+        const data = await res.json();
+        if (data.errors && Array.isArray(data.errors)) {
+          const fieldErrors: Record<string, string> = {};
+          for (const err of data.errors) {
+            fieldErrors[err.fieldId] = err.message;
+          }
+          setErrors(fieldErrors);
+        }
       }
     } finally {
       setSubmitting(false);
@@ -117,6 +131,7 @@ export function PublishedForm({ form }: PublishedFormProps) {
         style={{
           ...getBackgroundStyle(styles.background),
           fontFamily: `"${styles.fontFamily}", sans-serif`,
+          ...(styles.liquidGlass ? { color: "white" } : {}),
         }}
       >
                 <link rel="stylesheet" href={getGoogleFontsUrl(styles.fontFamily)} />
@@ -142,6 +157,7 @@ export function PublishedForm({ form }: PublishedFormProps) {
       style={{
         ...getBackgroundStyle(styles.background),
         fontFamily: `"${styles.fontFamily}", sans-serif`,
+        ...(styles.liquidGlass ? { color: "white" } : {}),
       }}
     >
       <link rel="stylesheet" href={getGoogleFontsUrl(styles.fontFamily)} />
@@ -155,30 +171,45 @@ export function PublishedForm({ form }: PublishedFormProps) {
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {visibleFields.map((field) => (
-            <div key={field.id} style={getContainerStyle(styles)}>
+        <form onSubmit={handleSubmit}>
+          <div style={getContainerStyle(styles)} className="space-y-5">
+            {visibleFields.map((field) => (
               <FormField
+                key={field.id}
                 field={field}
                 value={values[field.id] ?? ""}
-                onChange={(val) => setValue(field.id, val)}
+                onChange={(val) => {
+                  setValue(field.id, val);
+                  if (errors[field.id]) {
+                    setErrors((prev) => {
+                      const next = { ...prev };
+                      delete next[field.id];
+                      return next;
+                    });
+                  }
+                }}
                 primaryColor={styles.primaryColor}
+                liquidGlass={styles.liquidGlass}
+                error={errors[field.id]}
               />
-            </div>
-          ))}
+            ))}
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
-            style={{
-              backgroundColor: styles.button.color,
-              borderRadius: styles.button.borderRadius,
-              padding: "12px 24px",
-            }}
-          >
-            {submitting ? "Submitting..." : styles.button.text || "Submit"}
-          </button>
+            <button
+              type="submit"
+              disabled={submitting}
+              className="w-full font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-50"
+              style={{
+                backgroundColor: styles.button.color,
+                borderRadius: styles.button.borderRadius,
+                padding: "12px 24px",
+                ...(styles.liquidGlass
+                  ? getGlassButtonStyle(styles.button.color)
+                  : {}),
+              }}
+            >
+              {submitting ? "Submitting..." : styles.button.text || "Submit"}
+            </button>
+          </div>
         </form>
       </div>
     </div>
@@ -190,15 +221,24 @@ function FormField({
   value,
   onChange,
   primaryColor,
+  liquidGlass,
+  error,
 }: {
   field: PublishedField;
   value: string;
   onChange: (value: string) => void;
   primaryColor: string;
+  liquidGlass: boolean;
+  error?: string;
 }) {
-  const inputClass =
+  const baseInputClass =
     "w-full rounded-md border border-input bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent";
-  const focusStyle = { "--tw-ring-color": `${primaryColor}33` } as React.CSSProperties;
+  const inputClass = liquidGlass
+    ? "w-full rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:border-transparent"
+    : baseInputClass;
+  const focusStyle = liquidGlass
+    ? ({ "--tw-ring-color": `${primaryColor}33`, ...getGlassInputStyle() } as React.CSSProperties)
+    : ({ "--tw-ring-color": `${primaryColor}33` } as React.CSSProperties);
 
   if (field.type === "divider") {
     return <hr className="border-border" />;
@@ -212,10 +252,10 @@ function FormField({
     <div>
       <label className="mb-1.5 block text-sm font-medium">
         {field.label}
-        {field.required && <span className="ml-1 text-destructive">*</span>}
+        {field.required && <span className="ml-1 text-red-400">*</span>}
       </label>
       {field.helpText && (
-        <p className="mb-2 text-xs text-muted-foreground">{field.helpText}</p>
+        <p className={`mb-2 text-xs ${liquidGlass ? "opacity-70" : "text-muted-foreground"}`}>{field.helpText}</p>
       )}
       <FieldInput
         field={field}
@@ -225,6 +265,9 @@ function FormField({
         focusStyle={focusStyle}
         primaryColor={primaryColor}
       />
+      {error && (
+        <p className="mt-1.5 text-xs text-red-400 font-medium">{error}</p>
+      )}
     </div>
   );
 }
