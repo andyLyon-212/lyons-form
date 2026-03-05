@@ -13,6 +13,7 @@ import {
   Calendar,
   ClipboardList,
   Sparkles,
+  Eye,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { signOut } from "next-auth/react";
@@ -231,7 +232,20 @@ export function DashboardContent({ initialForms, templates, userName }: Props) {
 
                   {/* Dropdown */}
                   {openMenu === form.id && (
-                    <div className="absolute right-0 top-8 z-10 w-40 rounded-lg border border-border bg-white py-1 shadow-lg">
+                    <div className="absolute right-0 top-8 z-10 w-44 rounded-lg border border-border bg-white py-1 shadow-lg">
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setOpenMenu(null);
+                          router.push(
+                            `/dashboard/forms/${form.id}/submissions`
+                          );
+                        }}
+                        className="flex w-full items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-secondary"
+                      >
+                        <Eye className="h-3.5 w-3.5" />
+                        View Submissions
+                      </button>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
