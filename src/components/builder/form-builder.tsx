@@ -254,12 +254,23 @@ export function FormBuilder({ initialForm }: FormBuilderProps) {
     setPublishing(true);
     const newStatus = isPublished ? "draft" : "published";
     try {
+      // Cancel any pending debounced save
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+
+      // Save everything (title, description, fields, styles) along with status
       const res = await fetch(`/api/forms/${initialForm.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status: newStatus }),
+        body: JSON.stringify({
+          title,
+          description,
+          fields,
+          styles,
+          status: newStatus,
+        }),
       });
       if (res.ok) {
+        setSaveStatus("saved");
         setIsPublished(!isPublished);
         if (newStatus === "published") {
           setShowShareModal(true);

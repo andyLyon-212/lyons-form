@@ -5,6 +5,18 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 const prisma = new PrismaClient({ adapter });
 
 async function main() {
+  // Create system user for templates
+  const systemUser = await prisma.user.upsert({
+    where: { email: "system@lyons-form.internal" },
+    update: {},
+    create: {
+      id: "template-system",
+      email: "system@lyons-form.internal",
+      name: "System",
+      passwordHash: "not-a-real-hash",
+    },
+  });
+
   // Create Contact Form template
   const contactForm = await prisma.form.upsert({
     where: { slug: "template-contact-form" },
