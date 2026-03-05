@@ -25,7 +25,7 @@ function getConfig(): LLMConfig {
     };
   }
 
-  // Default: openai
+  // Default: openai-compatible (works with OpenAI, Z.ai, etc.)
   const apiKey = process.env.OPENAI_API_KEY;
   if (!apiKey) throw new Error("OPENAI_API_KEY is not set");
   return {
@@ -52,7 +52,8 @@ async function callOpenAI(
   systemPrompt: string,
   userMessage: string
 ): Promise<string> {
-  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+  const baseUrl = process.env.OPENAI_BASE_URL ?? "https://api.openai.com/v1";
+  const res = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
