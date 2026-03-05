@@ -43,7 +43,7 @@ async function main() {
     },
   });
 
-  // Create Event Registration template
+  // Create Event Registration template (without conditional logic first)
   const eventForm = await prisma.form.upsert({
     where: { slug: "template-event-registration" },
     update: {},
@@ -103,17 +103,28 @@ async function main() {
             placeholder: "e.g. ABC-1234",
             required: false,
             order: 8,
-            conditionalLogic: {
-              action: "show",
-              field: "Do you need parking?",
-              operator: "equals",
-              value: "Yes",
-            },
           },
         ],
       },
     },
+    include: { fields: { orderBy: { order: "asc" } } },
   });
+
+  // Set conditional logic with proper fieldId reference
+  const parkingField = eventForm.fields.find((f) => f.label === "Do you need parking?");
+  const plateField = eventForm.fields.find((f) => f.label === "Vehicle Plate Number");
+  if (parkingField && plateField) {
+    await prisma.formField.update({
+      where: { id: plateField.id },
+      data: {
+        conditionalLogic: {
+          fieldId: parkingField.id,
+          operator: "equals",
+          value: "Yes",
+        },
+      },
+    });
+  }
 
   console.log("Seeded templates:", { contactForm: contactForm.id, eventForm: eventForm.id });
 }

@@ -24,6 +24,7 @@ export async function POST(
 
   const slug = `form-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
+  // Create duplicate without conditional logic first (field IDs need remapping)
   const duplicate = await prisma.form.create({
     data: {
       userId: session.user.id,
@@ -42,12 +43,36 @@ export async function POST(
           validationRules: field.validationRules ?? undefined,
           options: field.options ?? undefined,
           order: field.order,
-          conditionalLogic: field.conditionalLogic ?? undefined,
         })),
       },
     },
-    include: { _count: { select: { submissions: true } } },
+    include: { fields: { orderBy: { order: "asc" } }, _count: { select: { submissions: true } } },
   });
+
+  // Remap conditional logic fieldId references from old IDs to new IDs
+  const oldToNewId = new Map<string, string>();
+  form.fields.forEach((oldField, i) => {
+    oldToNewId.set(oldField.id, duplicate.fields[i].id);
+  });
+
+  for (let i = 0; i < form.fields.length; i++) {
+    const logic = form.fields[i].conditionalLogic as { fieldId?: string; operator?: string; value?: string } | null;
+    if (logic?.fieldId) {
+      const newFieldId = oldToNewId.get(logic.fieldId);
+      if (newFieldId) {
+        await prisma.formField.update({
+          where: { id: duplicate.fields[i].id },
+          data: {
+            conditionalLogic: {
+              fieldId: newFieldId,
+              operator: logic.operator,
+              value: logic.value,
+            },
+          },
+        });
+      }
+    }
+  }
 
   return NextResponse.json(duplicate, { status: 201 });
 }

@@ -1,0 +1,129 @@
+# Iteration 11 Log
+
+## Metadata
+
+- **Task ID**: lyons-form-ie9.11
+- **Task Title**: US-011: Starter template — Contact Form
+- **Description**: As a user, I want a pre-built Contact Form template so that I can quickly create a standard contact form.
+
+Acceptance Criteria:
+- Template includes fields: Name (text, required), Email (email, require...
+- **Status**: completed
+- **Task Completed**: Yes
+- **Promise Detected**: Yes
+- **Started At**: 2026-03-05T01:20:36.442Z
+- **Ended At**: 2026-03-05T01:22:08.912Z
+- **Duration**: 1m 32s
+- **Input Tokens**: 145
+- **Output Tokens**: 2000
+- **Total Tokens**: 2145
+- **Agent**: claude
+- **Model**: claude-opus-4-6
+- **Epic**: lyons-form-ie9
+- **Sandbox Mode**: auto
+- **Sandbox Network**: Enabled
+--- RAW OUTPUT ---
+
+
+I'll start by studying the progress file and understanding the codebase, then implement the Contact Form template.
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/.ralph-tui/progress.md[0m
+[94m[Task][0m Explore template system
+[94m[Bash][0m $ find /home/andresleon/Documents/lyons-form -type f -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o ...
+[94m[Glob][0m pattern: [96m**/prisma/**[0m
+[94m[Glob][0m pattern: [96m**/*template*[0m
+[94m[Bash][0m $ find /home/andresleon/Documents/lyons-form/src -type f \( -name "*.ts" -o -name "*.tsx" \) | grep -E...
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/prisma/schema.prisma[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/app/api/templates/route.ts[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/app/api/forms/from-template/route.ts[0m
+[94m[Grep][0m pattern: [96mtemplate[0m
+[94m[Bash][0m $ find /home/andresleon/Documents/lyons-form/src -type f -name "*.tsx" -o -name "*.ts" | grep -v node_...
+[94m[Grep][0m pattern: [96misTemplate|from-template[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/app/(protected)/dashboard/page.tsx[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/components/dashboard/dashboard-content.tsx[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/prisma/seed.ts[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/app/api/forms/route.ts[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/app/api/forms/generate/route.ts[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/app/api/forms/[formId]/duplicate/route.ts[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/lib/builder-types.ts[0m
+[94m[Bash][0m $ grep -r "isTemplate\|Create.*Template\|from-template" /home/andresleon/Documents/lyons-form/src --in...
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/app/(protected)/builder/[formId]/page.tsx[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/components/builder/form-builder.tsx[0m
+The template system already exists with a Contact Form template in the seed. Let me verify the current seed matches the acceptance criteria.
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/prisma/seed.ts[0m
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/src/components/dashboard/dashboard-content.tsx[0m
+The Contact Form template already exists in the seed and matches all acceptance criteria exactly:
+
+- Fields: Name (text, required), Email (email, required), Phone (phone, optional), Subject (select with options), Message (textarea, required) 
+- Soft blue gradient background style
+- Selectable from the "Create from template" flow
+- Creates a copy owned by the user via `/api/forms/from-template`
+- All fields editable in the builder after creation
+
+Let me run the quality gates to confirm everything passes.
+[94m[Bash][0m Run TypeScript type checking $ npm run typecheck 2>&1
+[94m[Bash][0m Run ESLint $ npm run lint 2>&1
+Both quality gates pass (typecheck clean, lint has only a pre-existing warning, no errors).
+
+Now let me close the bead and update progress.
+[94m[Bash][0m Close the bead $ bd close lyons-form-ie9.11 --db /home/andresleon/Documents/lyons-form/.beads/beads.db --reason "Cont...
+[94m[Read][0m [95m/home/andresleon/Documents/lyons-form/.ralph-tui/progress.md[0m
+[94m[Edit][0m [95m/home/andresleon/Documents/lyons-form/.ralph-tui/progress.md[0m edit: "  - The create modal's state machine pattern (show..." → "  - The create modal's state machine pattern (show..."
+The Contact Form template was already fully implemented in ie9.1's seed data. All acceptance criteria are met:
+
+- **Fields**: Name (text, required), Email (email, required), Phone (phone, optional), Subject (select: General Inquiry/Support/Feedback/Other), Message (textarea, required)
+- **Style**: Soft blue gradient background (#e0f2fe → #bae6fd)
+- **Template flow**: Selectable from dashboard "Create from template" modal
+- **Ownership**: Creates a copy owned by the user via `/api/forms/from-template`
+- **Editable**: All fields fully editable in the builder
+- **Quality gates**: typecheck and lint pass
+
+<promise>COMPLETE</promise>
+
+--- SUBAGENT TRACE ---
+{
+  "events": [
+    {
+      "id": "subagent_1772673644851_j4fol6k",
+      "type": "spawn",
+      "timestamp": "2026-03-05T01:20:44.851Z",
+      "agentType": "Explore",
+      "description": "Explore template system",
+      "prompt": "Find how templates work in this codebase. Look for:\n1. Any existing template definitions or template data\n2. The \"Create from template\" flow - how templates are presented and used\n3. How forms are created from templates\n4. The form schema/model (Prisma schema for forms and fields)\n\nSearch thoroughly in src/ directory. Check for template-related files, components, API routes, and the Prisma schema.",
+      "model": "haiku"
+    },
+    {
+      "id": "subagent_1772673644851_j4fol6k",
+      "type": "complete",
+      "timestamp": "2026-03-05T01:22:08.603Z",
+      "agentType": "Explore",
+      "description": "Explore template system",
+      "exitStatus": "success",
+      "durationMs": 83752
+    }
+  ],
+  "hierarchy": [
+    {
+      "state": {
+        "id": "subagent_1772673644851_j4fol6k",
+        "agentType": "Explore",
+        "description": "Explore template system",
+        "status": "completed",
+        "childIds": [],
+        "spawnedAt": "2026-03-05T01:20:44.851Z",
+        "prompt": "Find how templates work in this codebase. Look for:\n1. Any existing template definitions or template data\n2. The \"Create from template\" flow - how templates are presented and used\n3. How forms are created from templates\n4. The form schema/model (Prisma schema for forms and fields)\n\nSearch thoroughly in src/ directory. Check for template-related files, components, API routes, and the Prisma schema.",
+        "endedAt": "2026-03-05T01:22:08.603Z",
+        "durationMs": 83752
+      },
+      "children": []
+    }
+  ],
+  "stats": {
+    "totalSubagents": 1,
+    "byType": {
+      "Explore": 1
+    },
+    "totalDurationMs": 83752,
+    "failureCount": 0,
+    "maxDepth": 1
+  }
+}

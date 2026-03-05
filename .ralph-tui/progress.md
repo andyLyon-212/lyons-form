@@ -11,6 +11,7 @@ after each iteration and it's included in prompts for context.
 - **Quality gates**: `npm run typecheck` (tsc --noEmit) and `npm run lint` (eslint).
 - **NextAuth v5 (beta)**: Auth config at `src/lib/auth.ts` exports `{ handlers, signIn, signOut, auth }`. Route handler at `src/app/api/auth/[...nextauth]/route.ts`. Middleware uses `export { auth as middleware }` pattern. Use `bcryptjs` (pure JS, no native deps) for password hashing. JWT/session callbacks needed to propagate `user.id`.
 - **React 19 lint strictness**: Cannot update refs during render (`react-hooks/refs`). Cannot call setState inside useEffect (`react-hooks/set-state-in-effect`). For debounced auto-save: trigger from event handlers, pass new values explicitly to avoid stale closures.
+- **Conditional logic field ID remapping**: When copying forms (template/duplicate), conditional logic `fieldId` references must be remapped from old to new IDs. Create fields without conditional logic first, build old→new ID map using matching array indices (both ordered by `order: "asc"`), then update fields that have conditional logic.
 
 ---
 
@@ -246,4 +247,21 @@ after each iteration and it's included in prompts for context.
   - The Contact Form template was seeded in ie9.1 with exact fields matching the US-011 spec: Name (text, required), Email (email, required), Phone (phone, optional), Subject (select with 4 options), Message (textarea, required)
   - Blue gradient styling (#e0f2fe → #bae6fd) and template selection flow were already functional
   - Always check seed data and existing implementation before starting new work
+---
+
+## 2026-03-04 - lyons-form-ie9.12
+- What was implemented: Event Registration template was already seeded in ie9.1. Fixed conditional logic to work correctly:
+  - Seed now creates fields first, then updates Vehicle Plate Number with proper `fieldId` reference to the parking radio field
+  - From-template API now remaps `fieldId` references when copying (old template field IDs → new form field IDs)
+  - Duplicate API also remaps conditional logic field IDs
+  - Removed unused `useRef` import from published-form.tsx
+- Files changed:
+  - prisma/seed.ts (two-step field creation + conditional logic update)
+  - src/app/api/forms/from-template/route.ts (field ID remapping for conditional logic)
+  - src/app/api/forms/[formId]/duplicate/route.ts (field ID remapping for conditional logic)
+  - src/components/forms/published-form.tsx (removed unused import)
+- **Learnings:**
+  - Conditional logic stores `fieldId` (database ID), not field label. When copying forms (template or duplicate), field IDs change so conditional logic references must be remapped
+  - Seed data with cross-field references (like conditional logic) requires a two-step approach: create fields first, then update with references using the generated IDs
+  - The `order: "asc"` orderBy ensures template and new form fields are in the same array order, making index-based old→new ID mapping reliable
 ---

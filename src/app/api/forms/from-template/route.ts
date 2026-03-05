@@ -21,6 +21,7 @@ export async function POST(request: NextRequest) {
 
   const slug = `form-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
+  // Create form without conditional logic first (field IDs need remapping)
   const form = await prisma.form.create({
     data: {
       userId: session.user.id,
@@ -39,12 +40,41 @@ export async function POST(request: NextRequest) {
           validationRules: field.validationRules ?? undefined,
           options: field.options ?? undefined,
           order: field.order,
-          conditionalLogic: field.conditionalLogic ?? undefined,
         })),
       },
     },
-    include: { fields: true },
+    include: { fields: { orderBy: { order: "asc" } } },
   });
+
+  // Remap conditional logic fieldId references from old template IDs to new IDs
+  const oldToNewId = new Map<string, string>();
+  template.fields.forEach((oldField, i) => {
+    oldToNewId.set(oldField.id, form.fields[i].id);
+  });
+
+  for (let i = 0; i < template.fields.length; i++) {
+    const logic = template.fields[i].conditionalLogic as { fieldId?: string; operator?: string; value?: string } | null;
+    if (logic?.fieldId) {
+      const newFieldId = oldToNewId.get(logic.fieldId);
+      if (newFieldId) {
+        await prisma.formField.update({
+          where: { id: form.fields[i].id },
+          data: {
+            conditionalLogic: {
+              fieldId: newFieldId,
+              operator: logic.operator,
+              value: logic.value,
+            },
+          },
+        });
+        form.fields[i].conditionalLogic = {
+          fieldId: newFieldId,
+          operator: logic.operator!,
+          value: logic.value!,
+        };
+      }
+    }
+  }
 
   return NextResponse.json(form, { status: 201 });
 }
