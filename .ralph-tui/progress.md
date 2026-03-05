@@ -238,3 +238,12 @@ after each iteration and it's included in prompts for context.
   - Prisma v7 JSON columns need explicit `as Prisma.InputJsonValue` cast for `Record<string, unknown>` types
   - The create modal's state machine pattern (showTemplates, showAiGenerate booleans) works for simple multi-view modals but would benefit from a discriminated union for more views
 ---
+
+## 2026-03-04 - lyons-form-ie9.11
+- What was implemented: Already complete from ie9.1 seed — Contact Form template with all required fields and styling
+- No files changed (verified existing implementation matches all acceptance criteria)
+- **Learnings:**
+  - The Contact Form template was seeded in ie9.1 with exact fields matching the US-011 spec: Name (text, required), Email (email, required), Phone (phone, optional), Subject (select with 4 options), Message (textarea, required)
+  - Blue gradient styling (#e0f2fe → #bae6fd) and template selection flow were already functional
+  - Always check seed data and existing implementation before starting new work
+---
