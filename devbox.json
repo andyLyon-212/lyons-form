@@ -3,11 +3,18 @@
   "packages": [
     "nodejs@latest",
     "unzip@latest",
-    "bun@latest"
+    "bun@latest",
+    "postgresql@latest",
+    "openssl",
+    "pkg-config",
+    "prisma-engines"
   ],
   "shell": {
     "init_hook": [
-      "echo 'Welcome to devbox!' > /dev/null"
+      "export PRISMA_SCHEMA_ENGINE_BINARY=$(which schema-engine)",
+      "export PRISMA_QUERY_ENGINE_BINARY=$(which query-engine)",
+      "export PRISMA_QUERY_ENGINE_LIBRARY=$(dirname $(which query-engine))/../lib/libquery_engine.node",
+      "export PRISMA_FMT_BINARY=$(which prisma-fmt)"
     ],
     "scripts": {
       "test": [

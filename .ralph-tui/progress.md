@@ -217,3 +217,24 @@ after each iteration and it's included in prompts for context.
   - Share modal using `window.location.origin` for building the full URL works well for generating share links
   - Published form route at `/f/[slug]` is cleaner and shorter than `/forms/[slug]`
 ---
+
+## 2026-03-04 - lyons-form-ie9.10
+- What was implemented:
+  - LLM abstraction layer at `src/lib/llm.ts` with provider-agnostic interface (OpenAI/Anthropic)
+  - Provider swappable via `LLM_PROVIDER` env var (`openai` default, or `anthropic`)
+  - Model configurable via `LLM_MODEL` env var
+  - API route at `/api/forms/generate` that sends prompt to LLM and creates form with generated fields
+  - "Generate with AI" button added as third option in the dashboard Create New Form modal
+  - AI generation view with textarea prompt input, loading spinner, error handling
+  - 3 example prompt suggestions to inspire users
+  - Generated form is created in DB and user is redirected to builder for review/editing
+  - Response validation: parses JSON, filters invalid field types, handles malformed responses
+- Files changed:
+  - src/lib/llm.ts (new: provider-agnostic LLM abstraction with raw fetch)
+  - src/app/api/forms/generate/route.ts (new: AI form generation API)
+  - src/components/dashboard/dashboard-content.tsx (added AI generation UI to create modal)
+- **Learnings:**
+  - Raw fetch to LLM APIs avoids SDK dependencies; OpenAI uses `response_format: { type: "json_object" }` for reliable JSON output, Anthropic relies on system prompt instructions
+  - Prisma v7 JSON columns need explicit `as Prisma.InputJsonValue` cast for `Record<string, unknown>` types
+  - The create modal's state machine pattern (showTemplates, showAiGenerate booleans) works for simple multi-view modals but would benefit from a discriminated union for more views
+---

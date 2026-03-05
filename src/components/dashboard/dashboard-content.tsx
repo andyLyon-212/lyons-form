@@ -40,11 +40,21 @@ type Props = {
   userName: string;
 };
 
+const EXAMPLE_PROMPTS = [
+  "Create a customer feedback form for a restaurant with ratings and comments",
+  "Build a job application form with personal info, experience, and file upload",
+  "Make an event RSVP form with attendee details, dietary preferences, and plus-one option",
+];
+
 export function DashboardContent({ initialForms, templates, userName }: Props) {
   const router = useRouter();
   const [forms, setForms] = useState(initialForms);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [showAiGenerate, setShowAiGenerate] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
   const [openMenu, setOpenMenu] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -54,6 +64,29 @@ export function DashboardContent({ initialForms, templates, userName }: Props) {
     const res = await fetch("/api/forms", { method: "POST" });
     const form = await res.json();
     router.push(`/builder/${form.id}`);
+  }
+
+  async function generateWithAi() {
+    if (!aiPrompt.trim()) return;
+    setAiLoading(true);
+    setAiError(null);
+    try {
+      const res = await fetch("/api/forms/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: aiPrompt.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setAiError(data.error || "Failed to generate form. Please try again.");
+        return;
+      }
+      router.push(`/builder/${data.id}`);
+    } catch {
+      setAiError("Something went wrong. Please try again.");
+    } finally {
+      setAiLoading(false);
+    }
   }
 
   async function createFromTemplate(templateId: string) {
@@ -234,22 +267,109 @@ export function DashboardContent({ initialForms, templates, userName }: Props) {
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm"
           onClick={() => {
-            setShowCreateModal(false);
-            setShowTemplates(false);
+            if (!aiLoading) {
+              setShowCreateModal(false);
+              setShowTemplates(false);
+              setShowAiGenerate(false);
+            }
           }}
         >
           <div
             className="mx-4 w-full max-w-lg rounded-2xl bg-white p-6 shadow-xl"
             onClick={(e) => e.stopPropagation()}
           >
-            {!showTemplates ? (
+            {showAiGenerate ? (
+              <>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => setShowAiGenerate(false)}
+                    disabled={aiLoading}
+                    className="rounded-lg p-1 text-muted-foreground hover:text-foreground disabled:opacity-50"
+                  >
+                    &larr;
+                  </button>
+                  <div>
+                    <h2 className="text-lg font-semibold">Generate with AI</h2>
+                    <p className="text-sm text-muted-foreground">
+                      Describe the form you want to create
+                    </p>
+                  </div>
+                </div>
+
+                <div className="mt-4">
+                  <textarea
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    placeholder="e.g., Create a customer feedback form for a restaurant..."
+                    disabled={aiLoading}
+                    rows={3}
+                    className="w-full resize-none rounded-xl border border-border/50 bg-background px-4 py-3 text-sm placeholder:text-muted-foreground focus:border-primary/50 focus:outline-none focus:ring-1 focus:ring-primary/20 disabled:opacity-50"
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" && !e.shiftKey) {
+                        e.preventDefault();
+                        generateWithAi();
+                      }
+                    }}
+                  />
+                </div>
+
+                {aiError && (
+                  <p className="mt-2 text-sm text-destructive">{aiError}</p>
+                )}
+
+                <div className="mt-3">
+                  <p className="mb-2 text-xs font-medium text-muted-foreground">
+                    Try an example:
+                  </p>
+                  <div className="flex flex-col gap-1.5">
+                    {EXAMPLE_PROMPTS.map((example) => (
+                      <button
+                        key={example}
+                        onClick={() => setAiPrompt(example)}
+                        disabled={aiLoading}
+                        className="rounded-lg border border-border/40 px-3 py-2 text-left text-xs text-muted-foreground transition-colors hover:border-primary/30 hover:bg-primary/5 hover:text-foreground disabled:opacity-50"
+                      >
+                        {example}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="mt-4 flex gap-3">
+                  <button
+                    onClick={() => {
+                      setShowCreateModal(false);
+                      setShowAiGenerate(false);
+                    }}
+                    disabled={aiLoading}
+                    className="flex-1 rounded-lg border border-border py-2 text-sm font-medium transition-colors hover:bg-secondary disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={generateWithAi}
+                    disabled={aiLoading || !aiPrompt.trim()}
+                    className="flex-1 rounded-lg bg-primary py-2 text-sm font-medium text-primary-foreground transition-colors hover:opacity-90 disabled:opacity-50"
+                  >
+                    {aiLoading ? (
+                      <span className="inline-flex items-center gap-2">
+                        <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-primary-foreground/30 border-t-primary-foreground" />
+                        Generating...
+                      </span>
+                    ) : (
+                      "Generate Form"
+                    )}
+                  </button>
+                </div>
+              </>
+            ) : !showTemplates ? (
               <>
                 <h2 className="text-lg font-semibold">Create New Form</h2>
                 <p className="mt-1 text-sm text-muted-foreground">
                   Choose how you&apos;d like to start
                 </p>
 
-                <div className="mt-5 grid gap-3 sm:grid-cols-2">
+                <div className="mt-5 grid gap-3 sm:grid-cols-3">
                   <button
                     onClick={createFromScratch}
                     disabled={loading}
@@ -272,12 +392,32 @@ export function DashboardContent({ initialForms, templates, userName }: Props) {
                     className="flex flex-col items-center gap-3 rounded-xl border border-border/50 p-6 text-center transition-all hover:border-primary/30 hover:bg-gradient-to-br hover:from-violet-50/50 hover:to-purple-50/50 hover:shadow-sm disabled:opacity-50"
                   >
                     <div className="rounded-full bg-gradient-to-br from-violet-100 to-purple-100 p-3">
-                      <Sparkles className="h-5 w-5 text-violet-600" />
+                      <FileText className="h-5 w-5 text-violet-600" />
                     </div>
                     <div>
                       <p className="font-medium">Use a template</p>
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         Start with a pre-built form
+                      </p>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      setShowAiGenerate(true);
+                      setAiPrompt("");
+                      setAiError(null);
+                    }}
+                    disabled={loading}
+                    className="flex flex-col items-center gap-3 rounded-xl border border-border/50 p-6 text-center transition-all hover:border-primary/30 hover:bg-gradient-to-br hover:from-amber-50/50 hover:to-orange-50/50 hover:shadow-sm disabled:opacity-50"
+                  >
+                    <div className="rounded-full bg-gradient-to-br from-amber-100 to-orange-100 p-3">
+                      <Sparkles className="h-5 w-5 text-amber-600" />
+                    </div>
+                    <div>
+                      <p className="font-medium">Generate with AI</p>
+                      <p className="mt-0.5 text-xs text-muted-foreground">
+                        Describe your form in words
                       </p>
                     </div>
                   </button>
@@ -340,6 +480,7 @@ export function DashboardContent({ initialForms, templates, userName }: Props) {
                   onClick={() => {
                     setShowCreateModal(false);
                     setShowTemplates(false);
+                    setShowAiGenerate(false);
                   }}
                   className="mt-4 w-full rounded-lg py-2 text-sm text-muted-foreground transition-colors hover:text-foreground"
                 >
