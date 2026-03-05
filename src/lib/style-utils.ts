@@ -32,11 +32,44 @@ const SHADOW_MAP: Record<FormStyles["container"]["shadow"], string> = {
 };
 
 export function getContainerStyle(styles: FormStyles): React.CSSProperties {
+  if (styles.liquidGlass) {
+    return {
+      borderRadius: styles.container.borderRadius,
+      padding: styles.container.padding,
+      background: "rgba(255, 255, 255, 0.12)",
+      backdropFilter: "blur(20px) saturate(180%)",
+      WebkitBackdropFilter: "blur(20px) saturate(180%)",
+      border: "1px solid rgba(255, 255, 255, 0.25)",
+      boxShadow:
+        "0 8px 32px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.4)",
+    };
+  }
   return {
     borderRadius: styles.container.borderRadius,
     boxShadow: SHADOW_MAP[styles.container.shadow],
     padding: styles.container.padding,
     backgroundColor: "white",
+  };
+}
+
+export function getGlassInputStyle(): React.CSSProperties {
+  return {
+    background: "rgba(255, 255, 255, 0.08)",
+    border: "1px solid rgba(255, 255, 255, 0.15)",
+    backdropFilter: "blur(8px)",
+    WebkitBackdropFilter: "blur(8px)",
+    color: "inherit",
+  };
+}
+
+export function getGlassButtonStyle(primaryColor: string): React.CSSProperties {
+  return {
+    backdropFilter: "blur(12px) saturate(150%)",
+    WebkitBackdropFilter: "blur(12px) saturate(150%)",
+    boxShadow:
+      "inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 4px 16px rgba(0, 0, 0, 0.1)",
+    border: "1px solid rgba(255, 255, 255, 0.2)",
+    backgroundColor: `${primaryColor}b3`,
   };
 }
 

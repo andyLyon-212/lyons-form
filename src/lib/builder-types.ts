@@ -82,6 +82,7 @@ export interface FormStyles {
     padding: number;
     maxWidth: number;
   };
+  liquidGlass: boolean;
 }
 
 export const DEFAULT_FORM_STYLES: FormStyles = {
@@ -107,6 +108,7 @@ export const DEFAULT_FORM_STYLES: FormStyles = {
     padding: 32,
     maxWidth: 512,
   },
+  liquidGlass: false,
 };
 
 export const FONT_OPTIONS = [
